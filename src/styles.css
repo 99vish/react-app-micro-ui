@@ -4,6 +4,8 @@
     align-items: center;
     min-height: 100vh;
     background-color: #f4f4f4;
+    padding: 20px; /* Add some padding to ensure it's not right against the edge */
+    box-sizing: border-box;
 }
 
 .mainForm {
@@ -15,6 +17,9 @@
     background: #ffffff;
     border-radius: 8px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    width: 100%; /* Full width */
+    max-width: 1200px; /* Optional: Set a maximum width for better readability */
+    box-sizing: border-box;
 }
 
 .formField {
@@ -31,7 +36,7 @@
 
 .textField {
     flex-grow: 1;
-    width: 300px; /* Fixed width for consistent size */
+    width: 100%; /* Full width for consistent size */
 }
 
 .inlineForm {
@@ -45,4 +50,23 @@
 .button {
     margin-top: 20px;
     align-self: flex-start;
+}
+
+.stepItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #ddd;
+    width: 100%;
+}
+
+.stepName {
+    flex-grow: 1;
+    margin-right: 10px;
+}
+
+.stepActions {
+    display: flex;
+    gap: 10px;
 }

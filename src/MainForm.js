@@ -145,8 +145,8 @@ const MainForm = () => {
                     <ul>
                         {formData.steps.map((step, index) => (
                             <li key={index} className="stepItem">
-                                {step.stepName || `Step ${index + 1}`}
-                                <div>
+                                <span className="stepName">{step.stepName || `Step ${index + 1}`}</span>
+                                <div className='stepActions'>
                                     <Tooltip title="Edit">
                                         <IconButton onClick={() => editStep(index)}>
                                             <EditIcon />
