@@ -1,0 +1,48 @@
+.mainFormContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: #f4f4f4;
+}
+
+.mainForm {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
+    padding: 20px;
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.formField {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+}
+
+.formField label {
+    min-width: 150px;
+    font-weight: bold;
+}
+
+.textField {
+    flex-grow: 1;
+    width: 300px; /* Fixed width for consistent size */
+}
+
+.inlineForm {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+    margin-top: 20px;
+}
+
+.button {
+    margin-top: 20px;
+    align-self: flex-start;
+}
