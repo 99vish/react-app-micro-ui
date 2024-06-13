@@ -67,7 +67,21 @@ const MainForm = () => {
         };
         const json = JSON.stringify(data, null, 2);
         console.log(json);
-        // Here you can add the logic to download the JSON or display it as needed
+        
+        // Create a blob from the JSON string
+        const blob = new Blob([json], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+
+        // Create a link element and trigger the download
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'demo.json';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        // Revoke the object URL
+        URL.revokeObjectURL(url);
     };
 
     return (
