@@ -117,8 +117,12 @@ export default function AddRule(props) {
   const onSelectorTypeChange = (e) => {
     const { name, value } = e.target
     setActions({ ...actions, [name]: value })
-    setSelectorTypeIndex(SELECTOR_TYPE_OPTIONS.indexOf(actions.selectorType))
-    setSelectedOptions(OBJECTS_OPTIONS[selectorTypeIndex])
+    let tempActions = {...actions};
+    tempActions[name] = value;
+    setSelectorTypeIndex(SELECTOR_TYPE_OPTIONS.indexOf(tempActions.selectorType))
+    let tempIndex = SELECTOR_TYPE_OPTIONS.indexOf(tempActions.selectorType);
+    
+    setSelectedOptions(OBJECTS_OPTIONS[tempIndex])
   }
 
   const resetData = () => {
@@ -135,11 +139,13 @@ export default function AddRule(props) {
 
   const generateJson = () => {
     const data = {
+
       ...formData,
       tags: formData.tags.split(',').map(tag => tag.trim()),
     };
     const json = JSON.stringify(data, null, 2);
     console.log(json);
+
 
     // Create a blob from the JSON string
     const blob = new Blob([json], { type: 'application/json' });
@@ -156,6 +162,7 @@ export default function AddRule(props) {
     // Revoke the object URL
     URL.revokeObjectURL(url);
   };
+
 
   return (
     <Grid container style={{ backgroundColor: "#fff" }}>
@@ -373,8 +380,7 @@ export default function AddRule(props) {
                             </Tooltip>
                             <Tooltip title="Delete">
                               <IconButton
-                              //  onClick={() => removeStep(index)}
-                              >
+                              //  onClick={() => removeStep(index)}                              >
                                 <DeleteIcon />
                               </IconButton>
                             </Tooltip>
