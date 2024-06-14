@@ -89,7 +89,16 @@ export default function AddRule(props) {
     setSteps({ stepName: '', stepType: '', actions: [] });
     setStepBoxOpen(false)
   };
-
+  const handleSaveAction = () => {
+    setSteps(prevSteps => ({
+      ...prevSteps,
+      steps: [...prevSteps.actions, actions]
+    }));
+    console.log(steps);
+    setActions({ actionType: '', selectedObject: '', selectorType: '', selector: '', occurance: '', x: '', y: '', value: ''});
+    setSelectedOptions([])
+    setActionBoxOpen(false)
+  };
   const handleDataSourceChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, dataSource: { ...formData.dataSource, [name]: value } });
@@ -301,7 +310,7 @@ export default function AddRule(props) {
                         variant="contained" color="primary" className="step-button"
                         onClick={handleSaveStep}
                       >
-                        Save
+                        Save Step
                       </Button>
                     </Grid>
                   </Grid>
@@ -344,24 +353,25 @@ export default function AddRule(props) {
                           </TextField>
                         </Grid>
                         {['click', 'dblclick', 'clear', 'clickAtPosition', 'hoverAtPosition', 'input'].includes(actions.actionType) ?
-                          <><Grid item xs={6} md={4} ls={4} xl={4}>
-                            <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
-                              Selector Type
-                              <span style={{ color: 'red' }}>*</span>
-                            </div>
-                            <TextField
-                              select
-                              name="selectorType"
-                              placeholder='Select Selector Type'
-                              style={{ width: '300px' }}
-                              value={actions.selectorType}
-                              onChange={onSelectorTypeChange}
-                            >
-                              {SELECTOR_TYPE_OPTIONS.map((option) => (
-                                <MenuItem key={option} value={option}> {option} </MenuItem>
-                              ))}
-                            </TextField>
-                          </Grid>
+                          <>
+                            <Grid item xs={6} md={4} ls={4} xl={4}>
+                              <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
+                                Selector Type
+                                <span style={{ color: 'red' }}>*</span>
+                              </div>
+                              <TextField
+                                select
+                                name="selectorType"
+                                placeholder='Select Selector Type'
+                                style={{ width: '300px' }}
+                                value={actions.selectorType}
+                                onChange={onSelectorTypeChange}
+                              >
+                                {SELECTOR_TYPE_OPTIONS.map((option) => (
+                                  <MenuItem key={option} value={option}> {option} </MenuItem>
+                                ))}
+                              </TextField>
+                            </Grid>
                             <Grid item xs={6} md={4} ls={4} xl={4}>
                               <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
                                 Select Objects
@@ -394,10 +404,10 @@ export default function AddRule(props) {
                               </div>
                               <TextField
                                 margin='dense'
+                                name='selector'
                                 type='text'
                                 variant='outlined'
                                 id="selector"
-                                title="Selector"
                                 required={true}
                                 onChange={e => onActionChange(e, 'selector')}
                                 value={actions.selector}
@@ -412,7 +422,7 @@ export default function AddRule(props) {
                                 </div>
                                 <TextField
                                   id="occurance"
-                                  title="Occurance"
+                                  name="occurance"
                                   required={true}
                                   onChange={e => onActionChange(e, 'occurance')}
                                   value={actions.occurance}
@@ -428,9 +438,9 @@ export default function AddRule(props) {
                                   </div>
                                   <TextField
                                     id="x"
-                                    title="X"
+                                    name="x"
                                     required={true}
-                                    onChange={e => handleChange(e, 'x')}
+                                    onChange={e => onActionChange(e)}
                                     value={actions.x}
                                     placeholder="Enter X"
                                     variant='outlined'
@@ -443,9 +453,9 @@ export default function AddRule(props) {
                                   </div>
                                   <TextField
                                     id="y"
-                                    title="Y"
+                                    name="y"
                                     required={true}
-                                    onChange={e => handleChange(e, 'y')}
+                                    onChange={e => onActionChange(e)}
                                     value={actions.y}
                                     placeholder="Enter Y"
                                     variant='outlined'
@@ -455,6 +465,14 @@ export default function AddRule(props) {
                             }
                           </Grid>
                         </Grid> : <></>}
+                      <Grid item xs={12} md={4} ls={4} xl={4}>
+                        <Button
+                          variant="contained" color="primary" className="button"
+                          onClick={handleSaveAction}
+                        >
+                          Save Action
+                        </Button>
+                      </Grid>
                     </Grid> :
                     <Button
                       variant="contained" color="primary" className="button"
@@ -466,26 +484,6 @@ export default function AddRule(props) {
             </Grid>
           </Grid>
         </Grid>
-
-
-
-        {/* {steps.stepType === 'UI' ? <Grid container style={{ marginBottom: '2%' }}>
-          <HeaderDivider
-            title={
-              <div style={{ display: 'flex' }}>
-                <h3 className={classes.headerStyle}>Actions</h3>
-              </div>
-            }
-          />
-          <Grid container direction="row" style={{ paddingLeft: '2%', paddingBottom: '20px' }}>
-            <Button
-              variant="contained" color="primary" className="button"
-              onClick={() => setActionBoxOpen(true)}
-            >
-              Add Action
-            </Button>
-          </Grid>
-        </Grid> : <></>} */}
       </Grid >
     </Grid >
   )
