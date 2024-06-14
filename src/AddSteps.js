@@ -92,7 +92,7 @@ export default function AddRule(props) {
   const handleSaveAction = () => {
     setSteps(prevSteps => ({
       ...prevSteps,
-      steps: [...prevSteps.actions, actions]
+      actions: [...prevSteps.actions, actions]
     }));
     console.log(steps);
     setActions({ actionType: '', selectedObject: '', selectorType: '', selector: '', occurance: '', x: '', y: '', value: ''});
@@ -114,8 +114,12 @@ export default function AddRule(props) {
   const onSelectorTypeChange = (e) => {
     const { name, value } = e.target
     setActions({ ...actions, [name]: value })
-    setSelectorTypeIndex(SELECTOR_TYPE_OPTIONS.indexOf(actions.selectorType))
-    setSelectedOptions(OBJECTS_OPTIONS[selectorTypeIndex])
+    let tempActions = {...actions};
+    tempActions[name] = value;
+    setSelectorTypeIndex(SELECTOR_TYPE_OPTIONS.indexOf(tempActions.selectorType))
+    let tempIndex = SELECTOR_TYPE_OPTIONS.indexOf(tempActions.selectorType);
+    
+    setSelectedOptions(OBJECTS_OPTIONS[tempIndex])
   }
 
   const resetData = () => {
@@ -130,6 +134,30 @@ export default function AddRule(props) {
     })
   }
 
+  const generateJson = () => {
+    const data = {
+        ...formData,
+        tags: formData.tags.split(',').map(tag => tag.trim()),
+    };
+    const json = JSON.stringify(data, null, 2);
+    console.log(json);
+    
+    // Create a blob from the JSON string
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+
+    // Create a link element and trigger the download
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'demo.json';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    // Revoke the object URL
+    URL.revokeObjectURL(url);
+};
+
   return (
     <Grid container style={{ backgroundColor: "#fff" }}>
       <Grid container direction="row" className={classes.cardGrid}>
@@ -139,7 +167,7 @@ export default function AddRule(props) {
             <Grid item style={{ marginleft: '2%' }}>
               <Button
                 variant="contained" color="primary" className="button"
-              // onClick={saveAndAdd}
+              onClick={generateJson}
               >
                 Generate JSON
               </Button>
@@ -353,25 +381,25 @@ export default function AddRule(props) {
                           </TextField>
                         </Grid>
                         {['click', 'dblclick', 'clear', 'clickAtPosition', 'hoverAtPosition', 'input'].includes(actions.actionType) ?
-                          <>
-                            <Grid item xs={6} md={4} ls={4} xl={4}>
-                              <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
-                                Selector Type
-                                <span style={{ color: 'red' }}>*</span>
-                              </div>
-                              <TextField
-                                select
-                                name="selectorType"
-                                placeholder='Select Selector Type'
-                                style={{ width: '300px' }}
-                                value={actions.selectorType}
-                                onChange={onSelectorTypeChange}
-                              >
-                                {SELECTOR_TYPE_OPTIONS.map((option) => (
-                                  <MenuItem key={option} value={option}> {option} </MenuItem>
-                                ))}
-                              </TextField>
-                            </Grid>
+                          <><Grid item xs={6} md={4} ls={4} xl={4}>
+                            <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
+                              Selector Type
+                              <span style={{ color: 'red' }}>*</span>
+                            </div>
+                            
+                            <TextField
+                              select
+                              name="selectorType"
+                              placeholder='Select Selector Type'
+                              style={{ width: '300px' }}
+                              value={actions.selectorType}
+                              onChange={onSelectorTypeChange}
+                            >
+                              {SELECTOR_TYPE_OPTIONS.map((option) => (
+                                <MenuItem key={option} value={option}> {option} </MenuItem>
+                              ))}
+                            </TextField>
+                          </Grid>
                             <Grid item xs={6} md={4} ls={4} xl={4}>
                               <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
                                 Select Objects
