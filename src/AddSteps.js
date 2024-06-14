@@ -46,8 +46,10 @@ export default function AddRule(props) {
 
   const [stepBoxOpen, setStepBoxOpen] = useState(false)
   const [actionBoxOpen, setActionBoxOpen] = useState(false)
+  let index = 1
 
   const [steps, setSteps] = useState({
+    step: index,
     stepName: '',
     stepType: '',
     actions: []
@@ -88,14 +90,15 @@ export default function AddRule(props) {
     console.log(formData);
     setSteps({ stepName: '', stepType: '', actions: [] });
     setStepBoxOpen(false)
+    index = index + 1
   };
   const handleSaveAction = () => {
     setSteps(prevSteps => ({
       ...prevSteps,
-      steps: [...prevSteps.actions, actions]
+      actions: [...prevSteps.actions, actions]
     }));
     console.log(steps);
-    setActions({ actionType: '', selectedObject: '', selectorType: '', selector: '', occurance: '', x: '', y: '', value: ''});
+    setActions({ actionType: '', selectedObject: '', selectorType: '', selector: '', occurance: '', x: '', y: '', value: '' });
     setSelectedOptions([])
     setActionBoxOpen(false)
   };
@@ -130,6 +133,30 @@ export default function AddRule(props) {
     })
   }
 
+  const generateJson = () => {
+    const data = {
+      ...formData,
+      tags: formData.tags.split(',').map(tag => tag.trim()),
+    };
+    const json = JSON.stringify(data, null, 2);
+    console.log(json);
+
+    // Create a blob from the JSON string
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+
+    // Create a link element and trigger the download
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'demo.json';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    // Revoke the object URL
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <Grid container style={{ backgroundColor: "#fff" }}>
       <Grid container direction="row" className={classes.cardGrid}>
@@ -139,7 +166,7 @@ export default function AddRule(props) {
             <Grid item style={{ marginleft: '2%' }}>
               <Button
                 variant="contained" color="primary" className="button"
-              // onClick={saveAndAdd}
+                onClick={generateJson}
               >
                 Generate JSON
               </Button>
@@ -331,155 +358,180 @@ export default function AddRule(props) {
                       </div>
                     }
                   />
-                  {actionBoxOpen ?
-                    <Grid container direction="row" className={classes.cardGrid}>
-                      <Grid container direction="row" style={{ paddingLeft: '2%', paddingBottom: '20px' }}>
-                        <Grid item xs={12} md={4} ls={4} xl={4}>
-                          <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
-                            Action Type
-                            <span style={{ color: 'red' }}>*</span>
+                  <Grid item xs={12} md={12} ls={12} xl={12}>
+                    <ul>
+                      {steps.actions.map((action, index) => (
+                        <li key={index} className="actionItem">
+                          <span className="actionName">{action.actionType || `Action ${index + 1}`}</span>
+                          <div className='stepActions'>
+                            <Tooltip title="Edit">
+                              <IconButton
+                              //  onClick={() => editStep(index)}
+                              >
+                                <EditIcon />
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip title="Delete">
+                              <IconButton
+                              //  onClick={() => removeStep(index)}
+                              >
+                                <DeleteIcon />
+                              </IconButton>
+                            </Tooltip>
                           </div>
-                          <TextField
-                            select
-                            name="actionType"
-                            placeholder='Select Action Type'
-                            style={{ width: '300px' }}
-                            value={actions.actionType}
-                            onChange={onActionChange}
-                          >
-                            {ACTION_TYPE_OPTIONS.map((option) => (
-                              <MenuItem key={option} value={option}> {option} </MenuItem>
-                            ))}
-                          </TextField>
-                        </Grid>
-                        {['click', 'dblclick', 'clear', 'clickAtPosition', 'hoverAtPosition', 'input'].includes(actions.actionType) ?
-                          <>
-                            <Grid item xs={6} md={4} ls={4} xl={4}>
-                              <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
-                                Selector Type
-                                <span style={{ color: 'red' }}>*</span>
-                              </div>
-                              <TextField
-                                select
-                                name="selectorType"
-                                placeholder='Select Selector Type'
-                                style={{ width: '300px' }}
-                                value={actions.selectorType}
-                                onChange={onSelectorTypeChange}
-                              >
-                                {SELECTOR_TYPE_OPTIONS.map((option) => (
-                                  <MenuItem key={option} value={option}> {option} </MenuItem>
-                                ))}
-                              </TextField>
-                            </Grid>
-                            <Grid item xs={6} md={4} ls={4} xl={4}>
-                              <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
-                                Select Objects
-                                <span style={{ color: 'red' }}>*</span>
-                              </div>
-                              <TextField
-                                select
-                                name="selectedObject"
-                                placeholder='Select Selector Type'
-                                style={{ width: '300px' }}
-                                value={actions.selectedObject}
-                                onChange={onActionChange}
-                              >
-                                {selectedOptions.map((option) => (
-                                  <MenuItem key={option} value={option}> {option} </MenuItem>
-                                ))}
-                              </TextField>
-                            </Grid>
-                          </> : <></>}
-                      </Grid>
-
-
-                      {['click', 'dblclick', 'clear', 'clickAtPosition', 'hoverAtPosition', 'input'].includes(actions.actionType) ?
-                        <Grid container style={{ marginBottom: '2%' }}>
-                          <Grid container direction="row" style={{ paddingLeft: '2%', paddingBottom: '20px' }}>
-                            <Grid item xs={12} md={4} ls={4} xl={4}>
-                              <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
-                                Selector
-                                <span style={{ color: 'red' }}>*</span>
-                              </div>
-                              <TextField
-                                margin='dense'
-                                name='selector'
-                                type='text'
-                                variant='outlined'
-                                id="selector"
-                                required={true}
-                                onChange={e => onActionChange(e, 'selector')}
-                                value={actions.selector}
-                                placeholder="Enter Selector"
-                              />
-                            </Grid>
-                            {['click', 'dblclick', 'clear', 'input'].includes(actions.actionType) ?
+                        </li>
+                      ))}
+                    </ul>
+                    {actionBoxOpen ?
+                      <Grid container direction="row" className={classes.cardGrid}>
+                        <Grid container direction="row" style={{ paddingLeft: '2%', paddingBottom: '20px' }}>
+                          <Grid item xs={12} md={4} ls={4} xl={4}>
+                            <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
+                              Action Type
+                              <span style={{ color: 'red' }}>*</span>
+                            </div>
+                            <TextField
+                              select
+                              name="actionType"
+                              placeholder='Select Action Type'
+                              style={{ width: '300px' }}
+                              value={actions.actionType}
+                              onChange={onActionChange}
+                            >
+                              {ACTION_TYPE_OPTIONS.map((option) => (
+                                <MenuItem key={option} value={option}> {option} </MenuItem>
+                              ))}
+                            </TextField>
+                          </Grid>
+                          {['click', 'dblclick', 'clear', 'clickAtPosition', 'hoverAtPosition', 'input'].includes(actions.actionType) ?
+                            <>
                               <Grid item xs={6} md={4} ls={4} xl={4}>
                                 <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
-                                  Occurance
+                                  Selector Type
                                   <span style={{ color: 'red' }}>*</span>
                                 </div>
                                 <TextField
-                                  id="occurance"
-                                  name="occurance"
-                                  required={true}
-                                  onChange={e => onActionChange(e, 'occurance')}
-                                  value={actions.occurance}
-                                  placeholder={'enter number'}
+                                  select
+                                  name="selectorType"
+                                  placeholder='Select Selector Type'
+                                  style={{ width: '300px' }}
+                                  value={actions.selectorType}
+                                  onChange={onSelectorTypeChange}
+                                >
+                                  {SELECTOR_TYPE_OPTIONS.map((option) => (
+                                    <MenuItem key={option} value={option}> {option} </MenuItem>
+                                  ))}
+                                </TextField>
+                              </Grid>
+                              <Grid item xs={6} md={4} ls={4} xl={4}>
+                                <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
+                                  Select Objects
+                                  <span style={{ color: 'red' }}>*</span>
+                                </div>
+                                <TextField
+                                  select
+                                  name="selectedObject"
+                                  placeholder='Select Selector Type'
+                                  style={{ width: '300px' }}
+                                  value={actions.selectedObject}
+                                  onChange={onActionChange}
+                                >
+                                  {selectedOptions.map((option) => (
+                                    <MenuItem key={option} value={option}> {option} </MenuItem>
+                                  ))}
+                                </TextField>
+                              </Grid>
+                            </> : <></>}
+                        </Grid>
+
+
+                        {['click', 'dblclick', 'clear', 'clickAtPosition', 'hoverAtPosition', 'input'].includes(actions.actionType) ?
+                          <Grid container style={{ marginBottom: '2%' }}>
+                            <Grid container direction="row" style={{ paddingLeft: '2%', paddingBottom: '20px' }}>
+                              <Grid item xs={12} md={4} ls={4} xl={4}>
+                                <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
+                                  Selector
+                                  <span style={{ color: 'red' }}>*</span>
+                                </div>
+                                <TextField
+                                  margin='dense'
+                                  name='selector'
+                                  type='text'
                                   variant='outlined'
+                                  id="selector"
+                                  required={true}
+                                  onChange={e => onActionChange(e, 'selector')}
+                                  value={actions.selector}
+                                  placeholder="Enter Selector"
                                 />
-                              </Grid> :
-                              <>
+                              </Grid>
+                              {['click', 'dblclick', 'clear', 'input'].includes(actions.actionType) ?
                                 <Grid item xs={6} md={4} ls={4} xl={4}>
                                   <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
-                                    X
+                                    Occurance
                                     <span style={{ color: 'red' }}>*</span>
                                   </div>
                                   <TextField
-                                    id="x"
-                                    name="x"
+                                    id="occurance"
+                                    name="occurance"
                                     required={true}
-                                    onChange={e => onActionChange(e)}
-                                    value={actions.x}
-                                    placeholder="Enter X"
+                                    onChange={e => onActionChange(e, 'occurance')}
+                                    value={actions.occurance}
+                                    placeholder={'enter number'}
                                     variant='outlined'
                                   />
-                                </Grid>
-                                <Grid item xs={6} md={4} ls={4} xl={4}>
-                                  <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
-                                    Y
-                                    <span style={{ color: 'red' }}>*</span>
-                                  </div>
-                                  <TextField
-                                    id="y"
-                                    name="y"
-                                    required={true}
-                                    onChange={e => onActionChange(e)}
-                                    value={actions.y}
-                                    placeholder="Enter Y"
-                                    variant='outlined'
-                                  />
-                                </Grid>
-                              </>
-                            }
-                          </Grid>
-                        </Grid> : <></>}
-                      <Grid item xs={12} md={4} ls={4} xl={4}>
-                        <Button
-                          variant="contained" color="primary" className="button"
-                          onClick={handleSaveAction}
-                        >
-                          Save Action
-                        </Button>
-                      </Grid>
-                    </Grid> :
-                    <Button
-                      variant="contained" color="primary" className="button"
-                      onClick={() => setActionBoxOpen(true)}
-                    >
-                      Add Action
-                    </Button>}
+                                </Grid> :
+                                <>
+                                  <Grid item xs={6} md={4} ls={4} xl={4}>
+                                    <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
+                                      X
+                                      <span style={{ color: 'red' }}>*</span>
+                                    </div>
+                                    <TextField
+                                      id="x"
+                                      name="x"
+                                      required={true}
+                                      onChange={e => onActionChange(e)}
+                                      value={actions.x}
+                                      placeholder="Enter X"
+                                      variant='outlined'
+                                    />
+                                  </Grid>
+                                  <Grid item xs={6} md={4} ls={4} xl={4}>
+                                    <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
+                                      Y
+                                      <span style={{ color: 'red' }}>*</span>
+                                    </div>
+                                    <TextField
+                                      id="y"
+                                      name="y"
+                                      required={true}
+                                      onChange={e => onActionChange(e)}
+                                      value={actions.y}
+                                      placeholder="Enter Y"
+                                      variant='outlined'
+                                    />
+                                  </Grid>
+                                </>
+                              }
+                            </Grid>
+                          </Grid> : <></>}
+                        <Grid item xs={12} md={4} ls={4} xl={4}>
+                          <Button
+                            variant="contained" color="primary" className="button"
+                            onClick={handleSaveAction}
+                          >
+                            Save Action
+                          </Button>
+                        </Grid>
+                      </Grid> :
+                      <Button
+                        variant="contained" color="primary" className="button"
+                        onClick={() => setActionBoxOpen(true)}
+                      >
+                        Add Action
+                      </Button>}
+                  </Grid>
                 </Grid> : <></>}
             </Grid>
           </Grid>
