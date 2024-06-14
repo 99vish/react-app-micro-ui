@@ -5,6 +5,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import StepDialog from './components/StepDialog';
 import './styles.css';
+import Form from './components/Form';
 
 const MainForm = () => {
     const [formData, setFormData] = useState({
@@ -98,6 +99,7 @@ const MainForm = () => {
                         value={formData.scenarioName}
                         onChange={handleChange}
                         className="textField"
+                        variant='outlined'
                     />
                 </div>
                 <div className="formField">
@@ -183,6 +185,7 @@ const MainForm = () => {
                     Generate JSON
                 </Button>
             </div>
+            {isStepDialogVisible && (<Form />)}
         </div>
     );
 };
