@@ -161,14 +161,14 @@ const MainForm = () => {
                             </li>
                         ))}
                     </ul>
-                    <Tooltip title="Add Step">
-                        <div onClick={handleAddStep} style={{ cursor: 'pointer', display: 'inline-block' }}>
-                            <IconButton>
+                    <div className="addStepContainer">
+                        <Tooltip title="Add Step">
+                            <div onClick={handleAddStep} className="addStep">
                                 <AddCircleIcon />
-                            </IconButton>
-                            <span>Add Step</span>
-                        </div>
-                    </Tooltip>
+                                <span>Add Step</span>
+                            </div>
+                        </Tooltip>
+                    </div>
                 </div>
 
                 {isStepDialogVisible && (

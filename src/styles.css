@@ -59,6 +59,11 @@
     padding: 10px 0;
     border-bottom: 1px solid #ddd;
     width: 100%;
+    list-style-type: none; /* Remove the default list style */
+}
+
+.stepItem:nth-child(even) {
+    background-color: #f9f9f9; /* Add alternating background color for better readability */
 }
 
 .stepName {
@@ -70,3 +75,32 @@
     display: flex;
     gap: 10px;
 }
+
+ul {
+    padding: 0;
+    margin: 0;
+    width: 100%;
+}
+
+.addStepContainer {
+    margin-top: 10px;
+}
+
+.addStep {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    color: #1976d2; /* Match the button color */
+    gap: 5px;
+    margin-top: 10px;
+}
+
+.addStep span {
+    font-weight: bold;
+}
+
+.button {
+    margin-top: 20px;
+    align-self: flex-start;
+}
+
