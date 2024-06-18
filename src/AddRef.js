@@ -219,14 +219,14 @@ export default function AddRule(props) {
           <HeaderDivider
             title={
               <div style={{ display: 'flex' }}>
-                <h3 className={classes.headerStyle}>Scenario Information</h3>
+                <h3 className={classes.headerStyle}>Assertions</h3>
               </div>
             }
           />
           <Grid container direction="row" style={{ paddingLeft: '2%', paddingBottom: '20px' }}>
             <Grid item xs={12} md={6} ls={6} xl={6}>
               <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
-                Scenario Name
+                Reference
                 <span style={{ color: 'red' }}>*</span>
               </div>
               <TextField
@@ -586,3 +586,4 @@ export default function AddRule(props) {
     </Grid >
   )
 }
+
