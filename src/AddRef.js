@@ -6,6 +6,7 @@ import { Autocomplete, MenuItem, IconButton, Tooltip } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import PopupForm from './components/PopupForm';
+import AddIcon from '@mui/icons-material/Add';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -71,14 +72,14 @@ export default function AddRule(props) {
 
   const [assertions, setAssertions] = useState({
     type: '',
-    key: '',
+    key: [''],
     operator: '',
     value: ''
   })
 
   const [outputVariable, setOutputVariable] = useState({
     type: '',
-    key: '',
+    key: [''],
     value: ''
   })
 
@@ -135,6 +136,54 @@ export default function AddRule(props) {
     console.log("HI")
   }
 
+  const handleAssertionKeyChange = (index, event) => {
+    const newKeys = [...assertions.key];
+    newKeys[index] = event.target.value;
+    setAssertions({
+      ...assertions,
+      key: newKeys,
+    });
+  };
+
+  const addKeyField = () => {
+    setAssertions({
+      ...assertions,
+      key: [...assertions.key, ''],
+    });
+  };
+
+  const deleteKeyField = (index) => {
+    const newKeys = assertions.key.filter((_, i) => i !== index);
+    setAssertions({
+      ...assertions,
+      key: newKeys,
+    });
+  };
+
+  const handleOutputKeyChange = (index, event) => {
+    const newKeys = [...outputVariable.key];
+    newKeys[index] = event.target.value;
+    setOutputVariable({
+      ...outputVariable,
+      key: newKeys,
+    });
+  };
+
+  const addOutputKeyField = () => {
+    setOutputVariable({
+      ...outputVariable,
+      key: [...outputVariable.key, ''],
+    });
+  };
+
+  const deleteOutputKeyField = (index) => {
+    const newKeys = outputVariable.key.filter((_, i) => i !== index);
+    setOutputVariable({
+      ...outputVariable,
+      key: newKeys,
+    });
+  };
+
   const handleOutputVariableChange = (e) => {
     const { name, value } = e.target;
     setOutputVariable({ ...outputVariable, [name]: value });
@@ -185,7 +234,7 @@ export default function AddRule(props) {
         </Grid>
       </div>
 
-{/* Assertions Grid */}
+      {/* Assertions Grid */}
 
       <Grid container style={{ marginBottom: '2%' }}>
         <HeaderDivider
@@ -214,22 +263,39 @@ export default function AddRule(props) {
               ))}
             </TextField>
           </Grid>
-          <Grid item xs={12} md={6} ls={6} xl={6}>
-            <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
-              Key
-              <span style={{ color: 'red' }}>*</span>
-            </div>
-            <TextField
-              margin='dense'
-              name="key"
-              placeholder="Enter Keys"
-              id="outputKey"
-              type='text'
-              onChange={e => handleAssertionChange(e)}
-              value={assertions.key}
-              variant='outlined'
-            />
-          </Grid>
+          <div>
+            Key
+            {assertions.key.map((key, index) => (
+              <Grid container alignItems="center" key={index}>
+                <Grid item>
+                  <TextField
+                    margin='dense'
+                    name="key"
+                    placeholder="Enter Key"
+                    id={`outputKey-${index}`}
+                    type='text'
+                    onChange={e => handleAssertionKeyChange(index, e)}
+                    value={key}
+                    variant='outlined'
+                  />
+                </Grid>
+                {index === assertions.key.length - 1 && (
+                  <>
+                    <Grid item>
+                      <IconButton onClick={addKeyField}>
+                        <AddIcon />
+                      </IconButton>
+                    </Grid>
+                    <Grid item>
+                      <IconButton onClick={() => deleteKeyField(index)}>
+                        <DeleteIcon />
+                      </IconButton>
+                    </Grid>
+                  </>
+                )}
+              </Grid>
+            ))}
+          </div>
           <Grid item xs={12} md={6} ls={6} xl={6}>
             <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
               Operator
@@ -266,7 +332,7 @@ export default function AddRule(props) {
         </Grid>
       </Grid>
 
-{/* Output Variables */}
+      {/* Output Variables */}
 
       <Grid container style={{ marginBottom: '2%' }}>
         <HeaderDivider
@@ -296,6 +362,41 @@ export default function AddRule(props) {
             </TextField>
           </Grid>
           <Grid item xs={12} md={6} ls={6} xl={6}>
+            <div>
+              Key
+              {outputVariable.key.map((key, index) => (
+                <Grid container alignItems="center" key={index}>
+                  <Grid item>
+                    <TextField
+                      margin='dense'
+                      name="key"
+                      placeholder="Enter Key"
+                      id={`outputKey-${index}`}
+                      type='text'
+                      onChange={e => handleOutputKeyChange(index, e)}
+                      value={key}
+                      variant='outlined'
+                    />
+                  </Grid>
+                  {index === outputVariable.key.length - 1 && (
+                    <>
+                      <Grid item>
+                        <IconButton onClick={addOutputKeyField}>
+                          <AddIcon />
+                        </IconButton>
+                      </Grid>
+                      <Grid item>
+                        <IconButton onClick={() => deleteOutputKeyField(index)}>
+                          <DeleteIcon />
+                        </IconButton>
+                      </Grid>
+                    </>
+                  )}
+                </Grid>
+              ))}
+            </div>
+          </Grid>
+          <Grid item xs={12} md={6} ls={6} xl={6}>
             <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
               Value
               <span style={{ color: 'red' }}>*</span>
@@ -307,22 +408,6 @@ export default function AddRule(props) {
               type='text'
               onChange={handleOutputVariableChange}
               value={outputVariable.value}
-              variant='outlined'
-            />
-          </Grid>
-          <Grid item xs={12} md={6} ls={6} xl={6}>
-            <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
-              Key
-              <span style={{ color: 'red' }}>*</span>
-            </div>
-            <TextField
-              margin='dense'
-              name="key"
-              placeholder="Enter Keys"
-              id="key"
-              type='text'
-              onChange={handleOutputVariableChange}
-              value={outputVariable.key}
               variant='outlined'
             />
           </Grid>
