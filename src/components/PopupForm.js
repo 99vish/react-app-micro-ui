@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Button, TextField, Modal, Typography, Grid, IconButton, Tooltip, MenuItem } from '@mui/material';
+import Autocomplete from '@mui/lab/Autocomplete';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import { ALL_OBJECTS } from './allObjects';
 
 const style = {
     position: 'absolute',
@@ -54,6 +56,10 @@ const PopupForm = ({ open, handleClose, onSubmit, initialData, isEdit }) => {
         handleClose();
     };
 
+    const handleAutocompleteChange = (event, newValue) => {
+        setFormData({ ...formData, selectedObject: newValue });
+      };
+
     return (
         <Modal
             open={open}
@@ -95,38 +101,17 @@ const PopupForm = ({ open, handleClose, onSubmit, initialData, isEdit }) => {
                             </Grid>
                         )}
                         {['click', 'dblclick', 'clear', 'clickAtPosition', 'hoverAtPosition', 'input'].includes(formData.actionType) && (
-                            <>
-                                <Grid item xs={12} md={4}>
-                                    <TextField
-                                        select
-                                        label="Element Type"
-                                        name="selectorType"
-                                        value={formData.selectorType}
-                                        onChange={handleChange}
-                                        fullWidth
-                                    >
-                                        {/* Replace with your SELECTOR_TYPE_OPTIONS */}
-                                        {['option1', 'option2'].map((option) => (
-                                            <MenuItem key={option} value={option}> {option} </MenuItem>
-                                        ))}
-                                    </TextField>
-                                </Grid>
-                                <Grid item xs={12} md={4}>
-                                    <TextField
-                                        select
-                                        label="Select Objects"
-                                        name="selectedObject"
-                                        value={formData.selectedObject}
-                                        onChange={handleChange}
-                                        fullWidth
-                                    >
-                                        {/* Replace with your selectedOptions */}
-                                        {['option1', 'option2'].map((option) => (
-                                            <MenuItem key={option} value={option}> {option} </MenuItem>
-                                        ))}
-                                    </TextField>
-                                </Grid>
-                            </>
+
+                            <Grid item xs={12} md={6}>
+                                <Autocomplete
+                                    options={ALL_OBJECTS}
+                                    value={formData.selectedObject}
+                                    onChange={handleAutocompleteChange}
+                                    renderInput={(params) => (
+                                        <TextField {...params} label="Select Objects" name="selectedObject" fullWidth />
+                                    )}
+                                />
+                            </Grid>
                         )}
                         {['click', 'dblclick', 'clear', 'clickAtPosition', 'hoverAtPosition', 'input'].includes(formData.actionType) && (
                             <>

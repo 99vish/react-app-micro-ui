@@ -90,6 +90,11 @@
     gap: 10px;
 }
 
+.stepReferences {
+    display: flex;
+    gap: 10px;
+}
+
 ul {
     padding: 0;
     margin: 0;
