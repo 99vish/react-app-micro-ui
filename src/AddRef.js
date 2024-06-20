@@ -1,5 +1,5 @@
 import { TextField, Button, Grid, makeStyles } from '@material-ui/core';
-import React, { useState } from "react";
+import React, { act, useState } from "react";
 import HeaderDivider from './components/headerWithDivider';
 import { STEP_TYPE_OPTIONS, ACTION_TYPE_OPTIONS, OBJECTS_OPTIONS, SELECTOR_TYPE_OPTIONS } from './components/constants';
 import { Autocomplete, MenuItem, IconButton, Tooltip } from '@mui/material';
@@ -56,88 +56,55 @@ export default function AddRule(props) {
     stepType: '',
     actions: []
   })
-  const [formData, setFormData] = useState({
-    scenarioName: '',
-    tags: '',
-    dataSource: { filepath: '', rowId: '' },
-    beforeAll: [],
-    beforeEach: [],
-    steps: [],
-    afterEach: [],
-    afterAll: []
-  })
-  const [actions, setActions] = useState({
+
+  let actions = steps.actions
+  const [action, setAction] = useState({
     actionType: '',
-    selectorType: '',
-    selectedObject: '',
+    elementType: '',
     selector: '',
     occurance: '',
     x: '',
     y: '',
+    value: '',
+    url: ''
+  })
+
+  const [assertions, setAssertions] = useState({
+    type: '',
+    key: '',
+    operator: '',
     value: ''
   })
 
-  const [selectorTypeIndex, setSelectorTypeIndex] = useState(0)
-  const [selectedOptions, setSelectedOptions] = useState([])
+  const [outputVariable, setOutputVariable] = useState({
+    type: '',
+    key: '',
+    value: ''
+  })
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setSteps({ ...steps, [name]: value });
+  const formData = {
+    actions: steps.actions,
+    assertions: assertions,
+    outputVariables: outputVariable
   }
 
-  const handleScenarioChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value })
-  }
 
-  const handleSaveAction = (action) => {
+  const handleSaveAction = (selectedAction) => {
     if (isEdit) {
       const updatedActions = [...steps.actions];
-      updatedActions[currentActionIndex] = action;
+      updatedActions[currentActionIndex] = selectedAction;
       setSteps({ ...steps, actions: updatedActions });
     } else {
-      setSteps({ ...steps, actions: [...steps.actions, action] });
+      setSteps({ ...steps, actions: [...steps.actions, selectedAction] });
     }
     handleClosePopup();
   };
 
-  const handleDataSourceChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, dataSource: { ...formData.dataSource, [name]: value } });
-  }
-  const onSelectChange = (e) => {
-    const { name, value } = e.target;
-    setSteps({ ...steps, [name]: value });
-  }
-
-  const onSelectorTypeChange = (e) => {
-    const { name, value } = e.target
-    setActions({ ...actions, [name]: value })
-    let tempActions = { ...actions };
-    tempActions[name] = value;
-    setSelectorTypeIndex(SELECTOR_TYPE_OPTIONS.indexOf(tempActions.selectorType))
-    let tempIndex = SELECTOR_TYPE_OPTIONS.indexOf(tempActions.selectorType);
-
-    setSelectedOptions(OBJECTS_OPTIONS[tempIndex])
-  }
-
-
-  const editStep = (stepIndex) => {
-    const stepToEdit = formData.steps[stepIndex];
-    if (stepToEdit) {
-      setSteps(stepToEdit);
-    }
-  };
   const handleOpenPopup = () => setPopup(true);
   const handleEditButtonClick = (index) => {
     setCurrentActionIndex(index);
     setIsEdit(true);
     handleOpenPopup();
-  };
-
-  const removeStep = (index) => {
-    const steps = formData.steps.filter((_, i) => i !== index);
-    setFormData({ ...formData, steps });
   };
 
   const removeAction = (index) => {
@@ -149,8 +116,8 @@ export default function AddRule(props) {
     setPopup(false);
     setIsEdit(false);
     setCurrentActionIndex(null);
-    setActions({
-      ...actions,
+    setAction({
+      ...action,
       actionType: '',
       selectorType: '',
       selectedObject: '',
@@ -162,15 +129,20 @@ export default function AddRule(props) {
     });
   };
 
+  const handleAssertionChange = (e) => {
+    const { name, value } = e.target;
+    setAssertions({ ...assertions, [name]: value });
+    console.log("HI")
+  }
+
+  const handleOutputVariableChange = (e) => {
+    const { name, value } = e.target;
+    setOutputVariable({ ...outputVariable, [name]: value });
+  }
+
   const generateJson = () => {
-    const data = {
-
-      ...formData,
-      tags: formData.tags.split(',').map(tag => tag.trim()),
-    };
-    const json = JSON.stringify(data, null, 2);
+    const json = JSON.stringify(formData, null, 2);
     console.log(json);
-
 
     // Create a blob from the JSON string
     const blob = new Blob([json], { type: 'application/json' });
@@ -213,6 +185,8 @@ export default function AddRule(props) {
         </Grid>
       </div>
 
+{/* Assertions Grid */}
+
       <Grid container style={{ marginBottom: '2%' }}>
         <HeaderDivider
           title={
@@ -229,11 +203,11 @@ export default function AddRule(props) {
             </div>
             <TextField
               select
-              name="stepType"
-              placeholder='Select Step Type'
+              name="type"
+              placeholder='Select Type'
               style={{ width: '300px' }}
-              value={steps.stepType}
-              onChange={onSelectChange}
+              value={assertions.type}
+              onChange={handleAssertionChange}
             >
               {STEP_TYPE_OPTIONS.map((option) => (
                 <MenuItem key={option} value={option}> {option} </MenuItem>
@@ -247,12 +221,12 @@ export default function AddRule(props) {
             </div>
             <TextField
               margin='dense'
-              name="tags"
+              name="key"
               placeholder="Enter Keys"
-              id="Tags"
+              id="outputKey"
               type='text'
-              onChange={e => handleScenarioChange(e)}
-              value={formData.tags}
+              onChange={e => handleAssertionChange(e)}
+              value={assertions.key}
               variant='outlined'
             />
           </Grid>
@@ -263,11 +237,11 @@ export default function AddRule(props) {
             </div>
             <TextField
               select
-              name="stepType"
-              placeholder='Select Step Type'
+              name="operator"
+              placeholder='Select Operator'
               style={{ width: '300px' }}
-              value={steps.stepType}
-              onChange={onSelectChange}
+              value={assertions.operator}
+              onChange={handleAssertionChange}
             >
               <MenuItem key='equals' value='equals'> Equals </MenuItem>
               <MenuItem key='notEquals' value='notEquals'> Not Equals </MenuItem>
@@ -280,17 +254,19 @@ export default function AddRule(props) {
             </div>
             <TextField
               margin='dense'
-              name="rowId"
-              placeholder="Enter Value"
+              name="value"
+              placeholder="Enter Values"
+              id="assertionValue"
               type='text'
-              onChange={e => handleDataSourceChange(e)}
-              value={formData.dataSource.rowId}
+              onChange={handleAssertionChange}
+              value={assertions.value}
               variant='outlined'
             />
           </Grid>
         </Grid>
       </Grid>
 
+{/* Output Variables */}
 
       <Grid container style={{ marginBottom: '2%' }}>
         <HeaderDivider
@@ -308,11 +284,11 @@ export default function AddRule(props) {
             </div>
             <TextField
               select
-              name="stepType"
-              placeholder='Select Step Type'
+              name="type"
+              placeholder='Select Type'
               style={{ width: '300px' }}
-              value={steps.stepType}
-              onChange={onSelectChange}
+              value={outputVariable.type}
+              onChange={handleOutputVariableChange}
             >
               {STEP_TYPE_OPTIONS.map((option) => (
                 <MenuItem key={option} value={option}> {option} </MenuItem>
@@ -326,11 +302,11 @@ export default function AddRule(props) {
             </div>
             <TextField
               margin='dense'
-              name="rowId"
+              name="value"
               placeholder="Enter Value"
               type='text'
-              onChange={e => handleDataSourceChange(e)}
-              value={formData.dataSource.rowId}
+              onChange={handleOutputVariableChange}
+              value={outputVariable.value}
               variant='outlined'
             />
           </Grid>
@@ -341,12 +317,12 @@ export default function AddRule(props) {
             </div>
             <TextField
               margin='dense'
-              name="tags"
+              name="key"
               placeholder="Enter Keys"
-              id="Tags"
+              id="key"
               type='text'
-              onChange={e => handleScenarioChange(e)}
-              value={formData.tags}
+              onChange={handleOutputVariableChange}
+              value={outputVariable.key}
               variant='outlined'
             />
           </Grid>
