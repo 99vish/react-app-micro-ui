@@ -7,6 +7,7 @@ import { ALL_OBJECTS } from './allObjects';
 import { STEP_TYPE_OPTIONS } from './constants';
 import HeaderDivider from './headerWithDivider';
 import { makeStyles } from '@material-ui/core';
+import { Link } from 'react-router-dom';
 
 const style = {
   position: 'absolute',
@@ -166,12 +167,19 @@ const StepBoxPopup = ({ open, handleClose, onSubmit, initialData, isEdit }) => {
       aria-describedby="modal-description"
     >
       <Box sx={style}>
-        <Typography id="modal-title" variant="h6" component="h2">
-          {isEdit ? "Edit Step" : "Add Step"}
+        <Typography id="modal-title" className='heading'>
+          {isEdit ? <h3>Edit Step</h3> : <h3>Add Step</h3>}
         </Typography>
+        <HeaderDivider
+          title={
+            <div style={{ display: 'flex' }}>
+              <h3 className={classes.headerStyle}>Steps Information</h3>
+            </div>
+          }
+        />
         <form onSubmit={handleSubmit}>
-          <Grid container direction="row" spacing={2}>
-            <Grid item xs={12} md={12}>
+          <Grid container direction="row" spacing={2} style={{ paddingLeft: '2%', paddingBottom: '20px' }}>
+            <Grid item xs={12} md={10}>
               <TextField
                 label="Step Name"
                 name="stepName"
@@ -219,21 +227,23 @@ const StepBoxPopup = ({ open, handleClose, onSubmit, initialData, isEdit }) => {
 
           {/* References Grid */}
 
-          <Grid className='actions-grid' container direction="row" style={{ paddingLeft: '2%', paddingBottom: '20px', paddingTop: '20px' }}>
+          <Grid className='actions-grid' container direction="row" style={{ paddingBottom: '20px', paddingTop: '20px' }}>
             <HeaderDivider
               title={
                 <div style={{ display: 'flex' }}>
-                  <h3 className={classes.headerStyle}>Add References</h3>
+                  <h3 className={classes.headerStyle}>References</h3>
                 </div>
               }
             />
-            <Grid container>
-              <ul>
+            <Grid container style={{paddingLeft: '2%', paddingBottom: '20px'}} >
+              <ul className='listItem'>
                 {step.references.map((reference, index) => (
-                  <li key={index} className="referenceItem">
-                    <span className="referenceName">
-                      {reference.referenceType || `Reference ${index + 1}`}
-                    </span>
+                  <li key={index} className="stepItem">
+                    <a href="http://localhost:3000/add-ref" target="_blank">
+                      <span className="stepName">
+                        {reference.referenceType || `Reference ${index + 1}`}
+                      </span>
+                    </a>
                     <div className="stepReference">
                       <Tooltip title="Edit">
                         <IconButton onClick={() => handleEditReference(index)}>
@@ -299,7 +309,6 @@ const StepBoxPopup = ({ open, handleClose, onSubmit, initialData, isEdit }) => {
                       <Grid item xs={12} md={6} ls={6} xl={6}>
                         <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
                           Type
-                          <span style={{ color: 'red' }}>*</span>
                         </div>
                         <TextField
                           select
@@ -317,7 +326,6 @@ const StepBoxPopup = ({ open, handleClose, onSubmit, initialData, isEdit }) => {
                       <Grid item xs={12} md={6} ls={6} xl={6}>
                         <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
                           Value
-                          <span style={{ color: 'red' }}>*</span>
                         </div>
                         <TextField
                           margin='dense'
@@ -332,12 +340,11 @@ const StepBoxPopup = ({ open, handleClose, onSubmit, initialData, isEdit }) => {
                       <Grid item xs={12} md={6} ls={6} xl={6}>
                         <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
                           Key
-                          <span style={{ color: 'red' }}>*</span>
                         </div>
                         <TextField
                           margin='dense'
                           name="key"
-                          placeholder="Enter Keys"
+                          placeholder="Enter Key"
                           id="key"
                           type='text'
                           onChange={handleOutputVariableChange}
@@ -364,12 +371,6 @@ const StepBoxPopup = ({ open, handleClose, onSubmit, initialData, isEdit }) => {
                   Add Reference
                 </Button>}
             </Grid>
-            {/* <Button
-              variant="contained" color="primary" className="step-button"
-              // onClick={handleSaveStep}
-            >
-              Save Step
-            </Button> */}
           </Grid>
 
 

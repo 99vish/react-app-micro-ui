@@ -164,7 +164,7 @@ export default function AddRule(props) {
   return (
     <Grid container direction="row" className={classes.cardGrid}>
       <div style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-        <h5 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#3a546b', fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif ', paddingTop: '1rem', width: '50%' }}> Add JSON </h5>
+        <h5 className='heading'> Add Reference </h5>
         <Grid container direction="row-reverse" spacing={2} className={classes.stickToTop}>
           <Grid item style={{ marginleft: '2%' }}>
             <Button
