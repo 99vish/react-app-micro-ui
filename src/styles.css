@@ -4,7 +4,8 @@
     align-items: center;
     min-height: 100vh;
     background-color: #f4f4f4;
-    padding: 20px; /* Add some padding to ensure it's not right against the edge */
+    padding: 20px;
+    /* Add some padding to ensure it's not right against the edge */
     box-sizing: border-box;
 }
 
@@ -17,8 +18,10 @@
     background: #ffffff;
     border-radius: 8px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    width: 100%; /* Full width */
-    max-width: 1200px; /* Optional: Set a maximum width for better readability */
+    width: 100%;
+    /* Full width */
+    max-width: 1200px;
+    /* Optional: Set a maximum width for better readability */
     box-sizing: border-box;
 }
 
@@ -36,7 +39,8 @@
 
 .textField {
     flex-grow: 1;
-    width: 100%; /* Full width for consistent size */
+    width: 100%;
+    /* Full width for consistent size */
 }
 
 .inlineForm {
@@ -52,6 +56,28 @@
     align-self: flex-start;
 }
 
+.heading {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #3a546b;
+    font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+    padding-top: 1rem;
+    width: 50%;
+}
+
+.listItem {
+    padding-right: 5%;
+}
+
+.refList{
+    padding-right: 5%;
+    padding-left: 5%;
+    width: 100%;
+}
+.referenceItem{
+    width: 1000px;
+}
+
 .stepItem {
     display: flex;
     justify-content: space-between;
@@ -59,11 +85,13 @@
     padding: 10px 10px;
     border-bottom: 1px solid #ddd;
     width: 100%;
-    list-style-type: none; /* Remove the default list style */
+    list-style-type: none;
+    /* Remove the default list style */
 }
 
 .stepItem:nth-child(even) {
-    background-color: #f9f9f9; /* Add alternating background color for better readability */
+    background-color: #f9f9f9;
+    /* Add alternating background color for better readability */
 }
 
 .add-step-button {
@@ -80,6 +108,7 @@
     border-bottom: 1px solid #ddd;
     width: 100%;
 }
+
 .stepName {
     flex-grow: 1;
     margin-right: 10px;
@@ -109,7 +138,8 @@ ul {
     display: flex;
     align-items: center;
     cursor: pointer;
-    color: #1976d2; /* Match the button color */
+    color: #1976d2;
+    /* Match the button color */
     gap: 5px;
     margin-top: 10px;
 }

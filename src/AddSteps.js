@@ -7,6 +7,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import StepBoxPopup from './components/StepBoxPopup';
 
+
 const useStyles = makeStyles((theme) => ({
   root: {
     flexGrow: 1,
@@ -166,7 +167,7 @@ export default function AddRule(props) {
     <Grid container style={{ backgroundColor: "#fff" }}>
       <Grid container direction="row" className={classes.cardGrid}>
         <div style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-          <h5 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#3a546b', fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif ', paddingTop: '1rem', width: '50%' }}> Add JSON </h5>
+          <h5 className='heading'> Add Scenario </h5>
           <Grid container direction="row-reverse" spacing={2} className={classes.stickToTop}>
             <Grid item style={{ marginleft: '2%' }}>
               <Button
@@ -265,7 +266,7 @@ export default function AddRule(props) {
 
         {/* Steps Information */}
 
-        <Grid className='steps-grid' container direction="row" style={{ paddingBottom: '5px', paddingRight: '4%', paddingTop: '20px' }}>
+        <Grid className='steps-grid' container direction="row" style={{ paddingBottom: '5px', paddingTop: '20px' }}>
           <HeaderDivider
             title={
               <div style={{ display: 'flex' }}>
@@ -274,7 +275,7 @@ export default function AddRule(props) {
             }
           />
           <Grid container direction="row" style={{ paddingLeft: '2%', paddingBottom: '20px' }}>
-            <ul>
+            <ul className='listItem'>
               {formData.steps.map((step, index) => (
                 <li key={index} className="stepItem">
                   <span className="stepName">{step.stepName || `Step ${index + 1}`}</span>
