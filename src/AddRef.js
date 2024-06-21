@@ -1,12 +1,12 @@
-import { TextField, Button, Grid, makeStyles } from '@material-ui/core';
-import React, { act, useState } from "react";
+import { Button, Grid, makeStyles } from '@material-ui/core';
+import React, { useState } from "react";
 import HeaderDivider from './components/headerWithDivider';
-import { STEP_TYPE_OPTIONS, ACTION_TYPE_OPTIONS, OBJECTS_OPTIONS, SELECTOR_TYPE_OPTIONS } from './components/constants';
-import { Autocomplete, MenuItem, IconButton, Tooltip } from '@mui/material';
+import { IconButton, Tooltip } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import PopupForm from './components/PopupForm';
-import AddIcon from '@mui/icons-material/Add';
+import AssertionBoxPopup from './components/AssertionsBoxPopup';
+import OutputVariablePopup from './components/OutputVariablesPopup';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -49,148 +49,108 @@ export default function AddRule(props) {
   const [isEdit, setIsEdit] = useState(false);
   const [currentActionIndex, setCurrentActionIndex] = useState(null);
   const [popup, setPopup] = useState(false)
-  let index = 1
+  const [assertionBoxOpen, setAssertionBoxOpen] = useState(false)
+  const [isAssertionEdit, setIsAssertionEdit] = useState(false)
+  const [currentAssertionIndex, setCurrentAssertionIndex] = useState(null)
+  const [outputVariablePopupOpen, setOutputVariablePopupOpen] = useState(false)
+  const [isOutputVariableEdit, setIsOutputVariableEdit] = useState(false)
+  const [currentOutputVariableIndex, setCurrentOutputVariableIndex] = useState(null)
+
 
   const [steps, setSteps] = useState({
-    step: index,
-    stepName: '',
-    stepType: '',
+    assertions: [],
+    outputVariables: [],
     actions: []
   })
 
-  let actions = steps.actions
-  const [action, setAction] = useState({
-    actionType: '',
-    elementType: '',
-    selector: '',
-    occurance: '',
-    x: '',
-    y: '',
-    value: '',
-    url: ''
-  })
-
-  const [assertions, setAssertions] = useState({
-    type: '',
-    key: [''],
-    operator: '',
-    value: ''
-  })
-
-  const [outputVariable, setOutputVariable] = useState({
-    type: '',
-    key: [''],
-    value: ''
-  })
-
-  const formData = {
-    actions: steps.actions,
-    assertions: assertions,
-    outputVariables: outputVariable
-  }
-
-
-  const handleSaveAction = (selectedAction) => {
-    if (isEdit) {
-      const updatedActions = [...steps.actions];
-      updatedActions[currentActionIndex] = selectedAction;
-      setSteps({ ...steps, actions: updatedActions });
+  const handleSaveAssertion = (selectedAssertion) => {
+    if (isAssertionEdit) {
+      const updatedAssertions = [...steps.assertions];
+      updatedAssertions[currentAssertionIndex] = selectedAssertion;
+      setSteps({ ...steps, assertions: updatedAssertions });
     } else {
-      setSteps({ ...steps, actions: [...steps.actions, selectedAction] });
+      setSteps({ ...steps, assertions: [...steps.assertions, selectedAssertion] });
     }
-    handleClosePopup();
+    handleCloseAssertionBox();
+  };
+
+  const handleAssertionEditButtonClick = (index) => {
+    const assertionToEdit = steps.assertions[index];
+    if (assertionToEdit) {
+      setCurrentAssertionIndex(index);
+      setIsAssertionEdit(true);
+      setAssertionBoxOpen(true)
+    }
+  };
+
+  const handleCloseAssertionBox = () => {
+    setAssertionBoxOpen(false);
+    setIsAssertionEdit(false);
+    setCurrentAssertionIndex(null);
+  };
+
+  const handleSaveOutputVariable = (selectedOutputVariable) => {
+    if (isOutputVariableEdit) {
+      const updatedOutputVariables = [...steps.outputVariables];
+      updatedOutputVariables[currentOutputVariableIndex] = selectedOutputVariable;
+      setSteps({ ...steps, outputVariables: updatedOutputVariables });
+    } else {
+      setSteps({ ...steps, outputVariables: [...steps.outputVariables, selectedOutputVariable] });
+    }
+    handleCloseOutputVariableBox();
+  };
+
+  const handleOutputVariableEditButtonClick = (index) => {
+    const outputVariableToEdit = steps.outputVariables[index];
+    if (outputVariableToEdit) {
+      setCurrentOutputVariableIndex(index);
+      setIsOutputVariableEdit(true);
+      setOutputVariablePopupOpen(true)
+    }
+  };
+
+  const handleCloseOutputVariableBox = () => {
+    setOutputVariablePopupOpen(false);
+    setIsOutputVariableEdit(false);
+    setCurrentOutputVariableIndex(null);
   };
 
   const handleOpenPopup = () => setPopup(true);
+
   const handleEditButtonClick = (index) => {
     setCurrentActionIndex(index);
     setIsEdit(true);
     handleOpenPopup();
   };
 
-  const removeAction = (index) => {
-    const actions = steps.actions.filter((_, i) => i !== index);
-    setSteps({ ...steps, actions });
-  };
-
   const handleClosePopup = () => {
     setPopup(false);
     setIsEdit(false);
     setCurrentActionIndex(null);
-    setAction({
-      ...action,
-      actionType: '',
-      selectorType: '',
-      selectedObject: '',
-      selector: '',
-      occurance: '',
-      x: '',
-      y: '',
-      value: ''
-    });
   };
 
-  const handleAssertionChange = (e) => {
-    const { name, value } = e.target;
-    setAssertions({ ...assertions, [name]: value });
-    console.log("HI")
-  }
 
-  const handleAssertionKeyChange = (index, event) => {
-    const newKeys = [...assertions.key];
-    newKeys[index] = event.target.value;
-    setAssertions({
-      ...assertions,
-      key: newKeys,
+  const handleSaveAction = (selectedAction) => {
+    if (isEdit) {
+        const updatedActions = [...steps.actions];
+        updatedActions[currentActionIndex] = selectedAction;
+        setSteps({ ...steps, actions: updatedActions });
+    } else {
+        setSteps({ ...steps, actions: [...steps.actions, selectedAction] });
+    }
+    setPopup(false);
+};
+
+  const removeItem = (arrayName, index) => {
+    setSteps((prevSteps) => {
+      const updatedArray = prevSteps[arrayName].filter((_, i) => i !== index);
+      return { ...prevSteps, [arrayName]: updatedArray };
     });
   };
-
-  const addKeyField = () => {
-    setAssertions({
-      ...assertions,
-      key: [...assertions.key, ''],
-    });
-  };
-
-  const deleteKeyField = (index) => {
-    const newKeys = assertions.key.filter((_, i) => i !== index);
-    setAssertions({
-      ...assertions,
-      key: newKeys,
-    });
-  };
-
-  const handleOutputKeyChange = (index, event) => {
-    const newKeys = [...outputVariable.key];
-    newKeys[index] = event.target.value;
-    setOutputVariable({
-      ...outputVariable,
-      key: newKeys,
-    });
-  };
-
-  const addOutputKeyField = () => {
-    setOutputVariable({
-      ...outputVariable,
-      key: [...outputVariable.key, ''],
-    });
-  };
-
-  const deleteOutputKeyField = (index) => {
-    const newKeys = outputVariable.key.filter((_, i) => i !== index);
-    setOutputVariable({
-      ...outputVariable,
-      key: newKeys,
-    });
-  };
-
-  const handleOutputVariableChange = (e) => {
-    const { name, value } = e.target;
-    setOutputVariable({ ...outputVariable, [name]: value });
-  }
+  
 
   const generateJson = () => {
-    const json = JSON.stringify(formData, null, 2);
+    const json = JSON.stringify(steps, null, 2);
     console.log(json);
 
     // Create a blob from the JSON string
@@ -208,7 +168,6 @@ export default function AddRule(props) {
     // Revoke the object URL
     URL.revokeObjectURL(url);
   };
-
 
   return (
     <Grid container direction="row" className={classes.cardGrid}>
@@ -236,7 +195,7 @@ export default function AddRule(props) {
 
       {/* Assertions Grid */}
 
-      <Grid container style={{ marginBottom: '2%' }}>
+      <Grid className='steps-grid' container direction="row" style={{ paddingBottom: '5px', paddingTop: '20px' }}>
         <HeaderDivider
           title={
             <div style={{ display: 'flex' }}>
@@ -245,91 +204,44 @@ export default function AddRule(props) {
           }
         />
         <Grid container direction="row" style={{ paddingLeft: '2%', paddingBottom: '20px' }}>
-          <Grid item xs={12} md={6} ls={6} xl={6}>
-            <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
-              Type
-              <span style={{ color: 'red' }}>*</span>
-            </div>
-            <TextField
-              select
-              name="type"
-              placeholder='Select Type'
-              style={{ width: '300px' }}
-              value={assertions.type}
-              onChange={handleAssertionChange}
-            >
-              {STEP_TYPE_OPTIONS.map((option) => (
-                <MenuItem key={option} value={option}> {option} </MenuItem>
-              ))}
-            </TextField>
-          </Grid>
-          <div>
-            Key
-            {assertions.key.map((key, index) => (
-              <Grid container alignItems="center" key={index}>
-                <Grid item>
-                  <TextField
-                    margin='dense'
-                    name="key"
-                    placeholder="Enter Key"
-                    id={`outputKey-${index}`}
-                    type='text'
-                    onChange={e => handleAssertionKeyChange(index, e)}
-                    value={key}
-                    variant='outlined'
-                  />
-                </Grid>
-                {index === assertions.key.length - 1 && (
-                  <>
-                    <Grid item>
-                      <IconButton onClick={addKeyField}>
-                        <AddIcon />
-                      </IconButton>
-                    </Grid>
-                    <Grid item>
-                      <IconButton onClick={() => deleteKeyField(index)}>
-                        <DeleteIcon />
-                      </IconButton>
-                    </Grid>
-                  </>
-                )}
-              </Grid>
+          <ul className='listItem'>
+            {steps.assertions.map((assertion, index) => (
+              <li key={index} className="stepItem">
+                <span className="stepName">{`assertion ${index + 1} --- ${assertion.type}`}</span>
+                <div className='stepReferences'>
+                  <Tooltip title="Edit">
+                    <IconButton
+                      onClick={() => handleAssertionEditButtonClick(index)}
+                    >
+                      <EditIcon />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title="Delete">
+                    <IconButton
+                      onClick={() => removeItem('assertions', index)}
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </Tooltip>
+                </div>
+              </li>
             ))}
-          </div>
-          <Grid item xs={12} md={6} ls={6} xl={6}>
-            <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
-              Operator
-              <span style={{ color: 'red' }}>*</span>
-            </div>
-            <TextField
-              select
-              name="operator"
-              placeholder='Select Operator'
-              style={{ width: '300px' }}
-              value={assertions.operator}
-              onChange={handleAssertionChange}
-            >
-              <MenuItem key='equals' value='equals'> Equals </MenuItem>
-              <MenuItem key='notEquals' value='notEquals'> Not Equals </MenuItem>
-            </TextField>
-          </Grid>
-          <Grid item xs={12} md={6} ls={6} xl={6}>
-            <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
-              Value
-              <span style={{ color: 'red' }}>*</span>
-            </div>
-            <TextField
-              margin='dense'
-              name="value"
-              placeholder="Enter Values"
-              id="assertionValue"
-              type='text'
-              onChange={handleAssertionChange}
-              value={assertions.value}
-              variant='outlined'
-            />
-          </Grid>
+          </ul>
+          <Button
+            variant="contained" color="primary" className="add-step-button"
+            onClick={() => setAssertionBoxOpen(true)}
+          >
+            Add Assertion
+          </Button>
+          <AssertionBoxPopup
+            open={assertionBoxOpen}
+            handleClose={handleCloseAssertionBox}
+            onSubmit={handleSaveAssertion}
+            initialData={isAssertionEdit ? steps.assertions[currentAssertionIndex] : null}
+            isEdit={isAssertionEdit}
+          />
         </Grid>
+
       </Grid>
 
       {/* Output Variables */}
@@ -343,77 +255,46 @@ export default function AddRule(props) {
           }
         />
         <Grid container direction="row" style={{ paddingLeft: '2%', paddingBottom: '20px' }}>
-          <Grid item xs={12} md={6} ls={6} xl={6}>
-            <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
-              Type
-              <span style={{ color: 'red' }}>*</span>
-            </div>
-            <TextField
-              select
-              name="type"
-              placeholder='Select Type'
-              style={{ width: '300px' }}
-              value={outputVariable.type}
-              onChange={handleOutputVariableChange}
-            >
-              {STEP_TYPE_OPTIONS.map((option) => (
-                <MenuItem key={option} value={option}> {option} </MenuItem>
-              ))}
-            </TextField>
-          </Grid>
-          <Grid item xs={12} md={6} ls={6} xl={6}>
-            <div>
-              Key
-              {outputVariable.key.map((key, index) => (
-                <Grid container alignItems="center" key={index}>
-                  <Grid item>
-                    <TextField
-                      margin='dense'
-                      name="key"
-                      placeholder="Enter Key"
-                      id={`outputKey-${index}`}
-                      type='text'
-                      onChange={e => handleOutputKeyChange(index, e)}
-                      value={key}
-                      variant='outlined'
-                    />
-                  </Grid>
-                  {index === outputVariable.key.length - 1 && (
-                    <>
-                      <Grid item>
-                        <IconButton onClick={addOutputKeyField}>
-                          <AddIcon />
-                        </IconButton>
-                      </Grid>
-                      <Grid item>
-                        <IconButton onClick={() => deleteOutputKeyField(index)}>
-                          <DeleteIcon />
-                        </IconButton>
-                      </Grid>
-                    </>
-                  )}
-                </Grid>
-              ))}
-            </div>
-          </Grid>
-          <Grid item xs={12} md={6} ls={6} xl={6}>
-            <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
-              Value
-              <span style={{ color: 'red' }}>*</span>
-            </div>
-            <TextField
-              margin='dense'
-              name="value"
-              placeholder="Enter Value"
-              type='text'
-              onChange={handleOutputVariableChange}
-              value={outputVariable.value}
-              variant='outlined'
-            />
-          </Grid>
+          <ul className='listItem'>
+            {steps.outputVariables.map((outputVariable, index) => (
+              <li key={index} className="stepItem">
+                <span className="stepName">{`outputVariable ${index + 1} --- ${outputVariable.type}`}</span>
+                <div className='stepReferences'>
+                  <Tooltip title="Edit">
+                    <IconButton
+                      onClick={() => handleOutputVariableEditButtonClick(index)}
+                    >
+                      <EditIcon />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title="Delete">
+                    <IconButton
+                      onClick={() => removeItem('outputVariables', index)}
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </Tooltip>
+                </div>
+              </li>
+            ))}
+          </ul>
+          <Button
+            variant="contained" color="primary" className="add-step-button"
+            onClick={() => setOutputVariablePopupOpen(true)}
+          >
+            Add Output_Variable
+          </Button>
+          <OutputVariablePopup
+            open={outputVariablePopupOpen}
+            handleClose={handleCloseOutputVariableBox}
+            onSubmit={handleSaveOutputVariable}
+            initialData={isOutputVariableEdit ? steps.outputVariables[currentOutputVariableIndex] : null}
+            isEdit={isOutputVariableEdit}
+          />
         </Grid>
       </Grid>
 
+      {/* Actions  */}
 
       <Grid className='actions-grid' container direction="row" style={{ paddingBottom: '2%' }}>
         <HeaderDivider
@@ -424,10 +305,10 @@ export default function AddRule(props) {
           }
         />
         <Grid container direction="row" style={{ paddingLeft: '2%', paddingBottom: '20px' }}>
-          <ul>
+          <ul className='listItem'>
             {steps.actions.map((action, index) => (
               <li key={index} className="actionItem">
-                <span className="actionName">{action.actionType || `Action ${index + 1}`}</span>
+                <span className="actionName">{`Action ${index + 1} --- ${action.actionType}`}</span>
                 <div className='stepActions'>
                   <Tooltip title="Edit">
                     <IconButton
@@ -438,7 +319,7 @@ export default function AddRule(props) {
                   </Tooltip>
                   <Tooltip title="Delete">
                     <IconButton
-                      onClick={() => removeAction(index)}
+                      onClick={() => removeItem('actions', index)}
                     >
                       <DeleteIcon />
                     </IconButton>
