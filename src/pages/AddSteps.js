@@ -1,11 +1,12 @@
 import { TextField, Button, Grid, makeStyles } from '@material-ui/core';
-import React, { useState } from "react";
-import HeaderDivider from './components/headerWithDivider';
-import { IconButton, Tooltip } from '@mui/material';
+import React, { useEffect, useState } from "react";
+import HeaderDivider from '../components/headerWithDivider';
+import { STEP_TYPE_OPTIONS, ACTION_TYPE_OPTIONS, OBJECTS_OPTIONS, SELECTOR_TYPE_OPTIONS } from '../constants/constants';
+import { Autocomplete, MenuItem, IconButton, Tooltip } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import StepBoxPopup from './components/StepBoxPopup';
-
+import StepBoxPopup from '../popups/StepBoxPopup';
+import { useLocation } from 'react-router-dom';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -40,25 +41,48 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-export default function AddRule(props) {
+export default function AddSteps(props) {
   // const context = useContext(AppContext);
   const classes = useStyles();
+  const location = useLocation();
+  const { fileData, allFiles } = location.state;
+
+  console.log(fileData);
 
 
   const [stepBoxOpen, setStepBoxOpen] = useState(false)
   const [currentStepIndex, setCurrentStepIndex] = useState(null);
   const [isEdit, setIsEdit] = useState(false);
+  const [formData, setFormData] = useState(JSON.parse(fileData.fileContent) || {
+  scenarioName: '',
+  tags: '',
+  dataSource: {
+    filepath: '',
+    rowId: ''
+  },
+  steps: []
+  });
 
-  const [formData, setFormData] = useState({
-    scenarioName: '',
-    tags: '',
-    dataSource: { filepath: '', rowId: '' },
-    beforeAll: [],
-    beforeEach: [],
-    steps: [],
-    afterEach: [],
-    afterAll: []
+  
+
+  const [actions, setActions] = useState({
+    actionType: '',
+    selectorType: '',
+    selectedObject: '',
+    selector: '',
+    occurance: '',
+    x: '',
+    y: '',
+    value: ''
   })
+  const [selectorTypeIndex, setSelectorTypeIndex] = useState(0)
+  const [selectedOptions, setSelectedOptions] = useState([])
+
+  useEffect(() => {
+    if (fileData) {
+      setFormData(JSON.parse(fileData.fileContent));
+    }
+  }, [fileData]);
 
 
   const handleScenarioChange = (e) => {
@@ -103,32 +127,50 @@ export default function AddRule(props) {
     handleCloseStepBox();
   };
 
+  const saveAsJson = async () => {
 
-  const generateJson = () => {
-    const data = {
+      // Create a JSON string
+    const jsonString = JSON.stringify(formData, null, 2);
 
-      ...formData,
-      tags: formData.tags.split(',').map(tag => tag.trim()),
-    };
-    const json = JSON.stringify(data, null, 2);
-    console.log(json);
+    try {
+      const handle = await window.showSaveFilePicker();
+      const writableStream = await handle.createWritable();
+      
+      // Write the JSON string to the writable stream
+      await writableStream.write(jsonString);
+      
+      // Close the writable stream
+      await writableStream.close();
+    } catch (err) {
+        console.error('Error saving file:', err);
+    }
 
-
-    // Create a blob from the JSON string
-    const blob = new Blob([json], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-
-    // Create a link element and trigger the download
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'demo.json';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    // Revoke the object URL
-    URL.revokeObjectURL(url);
   };
+
+  const saveJson = async () => {
+    const jsonString = JSON.stringify(formData, null, 2);
+
+    // Convert JSON string to a Blob
+    const blob = new Blob([jsonString], { type: 'application/json' });
+    
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    
+    // Set attributes for download dialog
+    link.setAttribute('download', `${fileData.fileName}`);
+    link.style.display = 'none';
+    
+    // Append the link to the body
+    document.body.appendChild(link);
+    
+    // Trigger the click event to open the save dialog
+    link.click();
+    
+    // Clean up
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
+    };
+
 
 
   return (
@@ -137,12 +179,20 @@ export default function AddRule(props) {
         <div style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
           <h5 className='heading'> Add Scenario </h5>
           <Grid container direction="row-reverse" spacing={2} className={classes.stickToTop}>
-            <Grid item style={{ marginleft: '2%' }}>
+          <Grid item style={{ marginleft: '2%' }}>
               <Button
-                variant="contained" color="primary" className="button"
-                onClick={generateJson}
+                variant="contained" color="primary" className={classes.button}
+                onClick={saveJson}
               >
-                Generate JSON
+                Save
+              </Button>
+            </Grid>
+            <Grid item>
+              <Button
+                variant="contained" color="primary" className={classes.button}
+                onClick={saveAsJson}
+              >
+                Save As
               </Button>
             </Grid>
             <Grid item>
@@ -278,6 +328,7 @@ export default function AddRule(props) {
               onSubmit={handleSaveAction}
               initialData={isEdit ? formData.steps[currentStepIndex] : null}
               isEdit={isEdit}
+              allFiles={allFiles}
             />
           </Grid>
 

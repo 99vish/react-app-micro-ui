@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Button, TextField, Modal, Typography, Grid, IconButton, Tooltip, MenuItem } from '@mui/material';
 import Autocomplete from '@mui/lab/Autocomplete';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
-import { ALL_OBJECTS } from './allObjects';
-import { STEP_TYPE_OPTIONS } from './constants';
-import HeaderDivider from './headerWithDivider';
+import EditIcon from '@mui/icons-material/Edit.js';
+import DeleteIcon from '@mui/icons-material/Delete.js';
+import { ALL_OBJECTS } from '../constants/allObjects.js';
+import { STEP_TYPE_OPTIONS } from '../constants/constants.js';
+import HeaderDivider from '../components/headerWithDivider.js';
 import { makeStyles } from '@material-ui/core';
 import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { jsx as _jsx } from 'react/jsx-dev-runtime.js';
 
 const style = {
   position: 'absolute',
@@ -54,9 +56,48 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-const StepBoxPopup = ({ open, handleClose, onSubmit, initialData, isEdit }) => {
+const StepBoxPopup = ({ open, handleClose, onSubmit, initialData, isEdit, allFiles }) => {
 
   const classes = useStyles();
+  const navigate = useNavigate();
+
+  // Function to normalize references
+  const normalizeReferences = (references) => {
+    return references.map(ref => {
+      if (ref.jsonRef) {
+        return {
+          referenceType: 'JSONRef',
+          referenceUrl: ref.jsonRef,
+          inputVariable: {},
+          outputVariable: {}
+        };
+      } else if (ref.funcRef) {
+        return {
+          referenceType: 'funcRef',
+          referenceUrl: ref.funcRef,
+          inputVariable: {},
+          outputVariable: {}
+        };
+      } else {
+        return ref; // Already in the correct format
+      }
+    });
+  };
+
+  console.log(initialData);
+
+  // Normalize initialData.references if it exists
+  const [normalizedInitialData] = useState(() => {
+    if (initialData) {
+      return {
+        ...initialData,
+        references: normalizeReferences(initialData.references)
+      };
+    }
+    return null;
+  });
+
+  console.log(normalizedInitialData);
 
   const [referenceBoxOpen, setReferenceBoxOpen] = useState(false)
   const [currentRefIndex, setCurrentRefIndex] = useState(null);
@@ -89,8 +130,8 @@ const StepBoxPopup = ({ open, handleClose, onSubmit, initialData, isEdit }) => {
   })
 
   useEffect(() => {
-    if (isEdit && initialData) {
-      setStep(initialData);
+    if (isEdit && normalizedInitialData) {
+      setStep(normalizedInitialData);
     } else {
       setStep({
         stepName: '',
@@ -99,7 +140,8 @@ const StepBoxPopup = ({ open, handleClose, onSubmit, initialData, isEdit }) => {
         references: []
       });
     }
-  }, [isEdit, initialData, open]);
+  }, [isEdit, normalizedInitialData]);
+  
 
   const handleChange = (e) => {
     setStep({ ...step, [e.target.name]: e.target.value });
@@ -117,15 +159,6 @@ const StepBoxPopup = ({ open, handleClose, onSubmit, initialData, isEdit }) => {
   const removeReference = (index) => {
     const updatedReferences = step.references.filter((_, i) => i !== index);
     setStep({ ...step, references: updatedReferences });
-  };
-
-  const handleEditReference = (index) => {
-    const ref = step.references[index];
-    setReference(ref);
-    setOutputVariable(ref.outputVariable);
-    setReferenceBoxOpen(true);
-    setIsRefEdit(true);
-    setCurrentRefIndex(index);
   };
 
   const handleSaveReference = () => {
@@ -158,6 +191,39 @@ const StepBoxPopup = ({ open, handleClose, onSubmit, initialData, isEdit }) => {
     onSubmit(step);
     handleClose();
   };
+
+  
+ 
+
+  const normalizePath = (path) => {
+    if(path){
+      return path.replace(/\\/g, '/'); // Convert all backslashes to forward slashes
+    } else {
+      console.log('path is invalid');
+    }
+    
+  };
+
+  
+  const handleEditReference = (index) => {    
+    const reference = normalizedInitialData.references[index];
+    if(reference.referenceType == "JSONRef"){
+      const jsonRef = normalizedInitialData.references[index].referenceUrl; // Path from normalizedInitialData
+      console.log(jsonRef);      
+      const file = allFiles.find(file => normalizePath(file.filePath).includes(normalizePath(jsonRef)));
+      console.log(file);
+      
+      if (file) {
+        navigate('/add-ref', { state: { fileData: file, allFiles: allFiles } });
+      } else {
+        console.log('File not found for referenceIndex:', index);
+      }
+    } else if (reference.referenceType == "funcRef") {
+
+    }
+    
+  };
+
 
   return (
     <Modal
@@ -238,12 +304,10 @@ const StepBoxPopup = ({ open, handleClose, onSubmit, initialData, isEdit }) => {
             <Grid container style={{paddingLeft: '2%', paddingBottom: '20px'}} >
               <ul className='listItem'>
                 {step.references.map((reference, index) => (
-                  <li key={index} className="stepItem">
-                    <a href="http://localhost:3000/add-ref" target="_blank">
-                      <span className="stepName">
-                        {reference.referenceType || `Reference ${index + 1}`}
-                      </span>
-                    </a>
+                  <li key={index} className="stepItem">  
+                    <span className="stepName">
+                      {reference.referenceType || `Reference ${index + 1}`}
+                    </span>                  
                     <div className="stepReference">
                       <Tooltip title="Edit">
                         <IconButton onClick={() => handleEditReference(index)}>

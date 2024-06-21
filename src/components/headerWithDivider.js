@@ -1,6 +1,6 @@
 import { Grid } from '@material-ui/core';
 import React from 'react';
-const headerDivider = props => {
+const headerWithDivider = props => {
 	return (
 		<React.Fragment key={props.title}>
 			<Grid
@@ -25,4 +25,4 @@ const headerDivider = props => {
 		</React.Fragment>
 	);
 };
-export default headerDivider;
+export default headerWithDivider;

@@ -1,12 +1,15 @@
-import { Button, Grid, makeStyles } from '@material-ui/core';
-import React, { useState } from "react";
-import HeaderDivider from './components/headerWithDivider';
-import { IconButton, Tooltip } from '@mui/material';
+import { TextField, Button, Grid, makeStyles } from '@material-ui/core';
+import React, { act, useEffect, useState } from "react";
+import HeaderDivider from '../components/headerWithDivider';
+import { STEP_TYPE_OPTIONS, ACTION_TYPE_OPTIONS, OBJECTS_OPTIONS, SELECTOR_TYPE_OPTIONS } from '../constants/constants';
+import { Autocomplete, MenuItem, IconButton, Tooltip } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import PopupForm from './components/PopupForm';
-import AssertionBoxPopup from './components/AssertionsBoxPopup';
-import OutputVariablePopup from './components/OutputVariablesPopup';
+import ActionsPopup from '../popups/ActionPopup';
+import { useLocation } from 'react-router-dom';
+import AddIcon from '@mui/icons-material/Add';
+import AssertionBoxPopup from '../popups/AssertionPopup';
+import OutputVariablePopup from '../popups/OutputVariablePopup';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -44,6 +47,13 @@ const useStyles = makeStyles((theme) => ({
 export default function AddRule(props) {
   // const context = useContext(AppContext);
   const classes = useStyles();
+  const location = useLocation();
+  const { fileData, allFiles } = location.state;
+
+  const [jsonFileContent, setJsonFileContent] = useState(() => JSON.parse(fileData.fileContent));
+
+ console.log(jsonFileContent);
+ console.log(jsonFileContent.actions)
 
 
   const [isEdit, setIsEdit] = useState(false);
@@ -58,24 +68,32 @@ export default function AddRule(props) {
 
 
   const [steps, setSteps] = useState({
-    assertions: [],
+    assertion: [],
     outputVariables: [],
     actions: []
   })
 
+  useEffect(() => {
+    if (fileData) {
+      setSteps(jsonFileContent);
+    }
+  }, [fileData]);
+
+  console.log(fileData);
+
   const handleSaveAssertion = (selectedAssertion) => {
     if (isAssertionEdit) {
-      const updatedAssertions = [...steps.assertions];
+      const updatedAssertions = [...steps.assertion];
       updatedAssertions[currentAssertionIndex] = selectedAssertion;
-      setSteps({ ...steps, assertions: updatedAssertions });
+      setSteps({ ...steps, assertion: updatedAssertions });
     } else {
-      setSteps({ ...steps, assertions: [...steps.assertions, selectedAssertion] });
+      setSteps({ ...steps, assertion: [...steps.assertion, selectedAssertion] });
     }
     handleCloseAssertionBox();
   };
 
   const handleAssertionEditButtonClick = (index) => {
-    const assertionToEdit = steps.assertions[index];
+    const assertionToEdit = steps.assertion[index];
     if (assertionToEdit) {
       setCurrentAssertionIndex(index);
       setIsAssertionEdit(true);
@@ -131,12 +149,14 @@ export default function AddRule(props) {
 
 
   const handleSaveAction = (selectedAction) => {
+    const { actionType, params } = selectedAction;
+    const action = { [actionType]: params }
     if (isEdit) {
         const updatedActions = [...steps.actions];
-        updatedActions[currentActionIndex] = selectedAction;
+        updatedActions[currentActionIndex] = action;
         setSteps({ ...steps, actions: updatedActions });
     } else {
-        setSteps({ ...steps, actions: [...steps.actions, selectedAction] });
+        setSteps({ ...steps, actions: [...steps.actions, action] });
     }
     setPopup(false);
 };
@@ -195,6 +215,7 @@ export default function AddRule(props) {
 
       {/* Assertions Grid */}
 
+      {jsonFileContent.assertion && jsonFileContent.assertion.length > 0 && (
       <Grid className='steps-grid' container direction="row" style={{ paddingBottom: '5px', paddingTop: '20px' }}>
         <HeaderDivider
           title={
@@ -205,7 +226,7 @@ export default function AddRule(props) {
         />
         <Grid container direction="row" style={{ paddingLeft: '2%', paddingBottom: '20px' }}>
           <ul className='listItem'>
-            {steps.assertions.map((assertion, index) => (
+            {steps.assertion.map((assertion, index) => (
               <li key={index} className="stepItem">
                 <span className="stepName">{`assertion ${index + 1} --- ${assertion.type}`}</span>
                 <div className='stepReferences'>
@@ -218,7 +239,7 @@ export default function AddRule(props) {
                   </Tooltip>
                   <Tooltip title="Delete">
                     <IconButton
-                      onClick={() => removeItem('assertions', index)}
+                      onClick={() => removeItem('assertion', index)}
                     >
                       <DeleteIcon />
                     </IconButton>
@@ -237,15 +258,17 @@ export default function AddRule(props) {
             open={assertionBoxOpen}
             handleClose={handleCloseAssertionBox}
             onSubmit={handleSaveAssertion}
-            initialData={isAssertionEdit ? steps.assertions[currentAssertionIndex] : null}
+            initialData={isAssertionEdit ? steps.assertion[currentAssertionIndex] : null}
             isEdit={isAssertionEdit}
           />
         </Grid>
 
       </Grid>
+      )}
 
       {/* Output Variables */}
-
+      {/* Conditionally render Output Variables Grid if outputVariable exists */}
+      {jsonFileContent.outputVariable && Object.keys(jsonFileContent.outputVariable).length > 0 && (
       <Grid container style={{ marginBottom: '2%' }}>
         <HeaderDivider
           title={
@@ -293,9 +316,9 @@ export default function AddRule(props) {
           />
         </Grid>
       </Grid>
+      )}
 
-      {/* Actions  */}
-
+      {jsonFileContent.actions && Object.keys(jsonFileContent.actions).length > 0 && (
       <Grid className='actions-grid' container direction="row" style={{ paddingBottom: '2%' }}>
         <HeaderDivider
           title={
@@ -335,14 +358,16 @@ export default function AddRule(props) {
             Add Action
           </Button>
         </Grid>
-        <PopupForm
+        <ActionsPopup
           open={popup}
           handleClose={handleClosePopup}
           onSubmit={handleSaveAction}
-          initialData={isEdit ? steps.actions[currentActionIndex] : null}
+          initialData={isEdit ? jsonFileContent.actions[currentActionIndex] : null}
           isEdit={isEdit}
+          actionsData = {jsonFileContent.actions}
         />
       </Grid>
+      )}
     </Grid>
   )
 }

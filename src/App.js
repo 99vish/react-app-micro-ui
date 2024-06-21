@@ -1,8 +1,9 @@
 import React from 'react';
 import './styles.css';
-import AddSteps from './AddSteps'
+import AddSteps from './pages/AddSteps.js'
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import AddRef from './AddRef';
+import AddRef from './pages/AddRef.js';
+import LandingPage from './LandingPage.js';
 
 const App = () => {
     return (
@@ -11,7 +12,7 @@ const App = () => {
                 <Routes>
                     <Route path="/add-steps" element={<AddSteps />} />
                     <Route path="/add-ref" element={<AddRef />} />
-                    <Route path="/"  element={<AddSteps />} />
+                    <Route path="/"  element={<LandingPage />} />
                 </Routes>
             </div>
         </Router>
