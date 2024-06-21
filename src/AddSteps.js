@@ -1,8 +1,7 @@
 import { TextField, Button, Grid, makeStyles } from '@material-ui/core';
 import React, { useState } from "react";
 import HeaderDivider from './components/headerWithDivider';
-import { STEP_TYPE_OPTIONS, ACTION_TYPE_OPTIONS, OBJECTS_OPTIONS, SELECTOR_TYPE_OPTIONS } from './components/constants';
-import { Autocomplete, MenuItem, IconButton, Tooltip } from '@mui/material';
+import { IconButton, Tooltip } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import StepBoxPopup from './components/StepBoxPopup';
@@ -48,37 +47,7 @@ export default function AddRule(props) {
 
   const [stepBoxOpen, setStepBoxOpen] = useState(false)
   const [currentStepIndex, setCurrentStepIndex] = useState(null);
-  const [referenceBoxOpen, setReferenceBoxOpen] = useState(false)
   const [isEdit, setIsEdit] = useState(false);
-  let index = 1
-
-
-  const [inputVariable, setInputVariable] = useState({
-    type: '',
-    key: '',
-    operator: '',
-    value: ''
-  })
-
-  const [outputVariable, setOutputVariable] = useState({
-    type: '',
-    key: '',
-    value: ''
-  })
-
-  const [references, setReferences] = useState({
-    referenceType: '',
-    referenceUrl: '',
-    inputVariable: inputVariable,
-    outputVariable: outputVariable
-  })
-
-  const [step, setStep] = useState({
-    stepNumber: index,
-    stepName: '',
-    stepType: '',
-    references: []
-  })
 
   const [formData, setFormData] = useState({
     scenarioName: '',
@@ -105,7 +74,6 @@ export default function AddRule(props) {
   const handleEditButtonClick = (stepIndex) => {
     const stepToEdit = formData.steps[stepIndex];
     if (stepToEdit) {
-      setStep(stepToEdit);
       setCurrentStepIndex(stepIndex);
       setIsEdit(true);
       setStepBoxOpen(true);
@@ -312,10 +280,6 @@ export default function AddRule(props) {
               isEdit={isEdit}
             />
           </Grid>
-
-
-          {/* References Grid Starts Here */}
-
 
         </Grid>
       </Grid>
