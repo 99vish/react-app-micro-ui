@@ -177,7 +177,7 @@ export default function AddSteps(props) {
     <Grid container style={{ backgroundColor: "#fff" }}>
       <Grid container direction="row" className={classes.cardGrid}>
         <div style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-          <h5 className='heading'> Add Scenario </h5>
+          <h5 className='heading'> Scenario Information </h5>
           <Grid container direction="row-reverse" spacing={2} className={classes.stickToTop}>
           <Grid item style={{ marginleft: '2%' }}>
               <Button
@@ -212,7 +212,7 @@ export default function AddSteps(props) {
           <HeaderDivider
             title={
               <div style={{ display: 'flex' }}>
-                <h3 className={classes.headerStyle}>Scenario Information</h3>
+                <h3 className={classes.headerStyle}>General Information</h3>
               </div>
             }
           />

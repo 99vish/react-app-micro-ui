@@ -1,27 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Button, TextField, Modal, Typography, Grid, IconButton, Tooltip, MenuItem } from '@mui/material';
 import Autocomplete from '@mui/lab/Autocomplete';
-import EditIcon from '@mui/icons-material/Edit.js';
-import DeleteIcon from '@mui/icons-material/Delete.js';
-import { ALL_OBJECTS } from '../constants/allObjects.js';
-import { STEP_TYPE_OPTIONS } from '../constants/constants.js';
-import HeaderDivider from '../components/headerWithDivider.js';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import { ALL_OBJECTS } from '../constants/allObjects';
+import { STEP_TYPE_OPTIONS } from '../constants/constants';
+import HeaderDivider from '../components/headerWithDivider';
 import { makeStyles } from '@material-ui/core';
 import { Link } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
-import { jsx as _jsx } from 'react/jsx-dev-runtime.js';
-
-const style = {
-  position: 'absolute',
-  top: '50%',
-  left: '50%',
-  transform: 'translate(-50%, -50%)',
-  width: 1000,
-  bgcolor: 'background.paper',
-  border: '2px solid #000',
-  boxShadow: 24,
-  p: 4,
-};
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -53,81 +40,100 @@ const useStyles = makeStyles((theme) => ({
     backgroundColor: 'white',
     borderRadius: '2px',
     border: '1px solid #DDDBDA'
+  },
+  modalContainer: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: '100vh',
+  },
+  modalContent: {
+    width: '80%',
+    maxHeight: '80vh',
+    overflowY: 'auto',
+    backgroundColor: 'white',
+    padding: theme.spacing(2),
+    boxShadow: theme.shadows[5],
   }
 }));
+
+// Function to normalize references
+const normalizeReferences = (references) => {
+  return references.map(ref => {
+    if ('jsonRef' in ref) {
+      return {
+        referenceType: 'JSONRef',
+        referenceUrl: ref.jsonRef,
+        inputVariable: ref.inputVariable,
+        outputVariable: ref.outputVariable
+      };
+    } else if ('funcRef' in ref) {
+      return {
+        referenceType: 'funcRef',
+        referenceUrl: ref.funcRef,
+        inputVariable: ref.inputVariable,
+        outputVariable: ref.outputVariable
+      };
+    } else {
+      return ref; // Already in the correct format
+    }
+  });
+};
+
+// Function to normalize initial data
+const getNormalizedInitialData = (initialData) => {
+  if (initialData) {
+    return {
+      ...initialData,
+      references: normalizeReferences(initialData.references)
+    };
+  }
+  return null;
+};
+
+const addNewReference = (step,reference) => {
+  const updatedStep = {
+    ...step,
+    references: [...step.references, reference]
+  };
+
+  return updatedStep;
+}
 
 const StepBoxPopup = ({ open, handleClose, onSubmit, initialData, isEdit, allFiles }) => {
 
   const classes = useStyles();
   const navigate = useNavigate();
 
-  // Function to normalize references
-  const normalizeReferences = (references) => {
-    return references.map(ref => {
-      if (ref.jsonRef) {
-        return {
-          referenceType: 'JSONRef',
-          referenceUrl: ref.jsonRef,
-          inputVariable: {},
-          outputVariable: {}
-        };
-      } else if (ref.funcRef) {
-        return {
-          referenceType: 'funcRef',
-          referenceUrl: ref.funcRef,
-          inputVariable: {},
-          outputVariable: {}
-        };
-      } else {
-        return ref; // Already in the correct format
-      }
-    });
-  };
+  const normalizedInitialData = getNormalizedInitialData(initialData);
 
-  console.log(initialData);
-
-  // Normalize initialData.references if it exists
-  const [normalizedInitialData] = useState(() => {
-    if (initialData) {
-      return {
-        ...initialData,
-        references: normalizeReferences(initialData.references)
-      };
-    }
-    return null;
-  });
-
-  console.log(normalizedInitialData);
-
-  const [referenceBoxOpen, setReferenceBoxOpen] = useState(false)
-  const [currentRefIndex, setCurrentRefIndex] = useState(null);
-  const [isRefEdit, setIsRefEdit] = useState(false)
+  const [referenceBoxOpen, setReferenceBoxOpen] = useState(false);
   const [inputVariable, setInputVariable] = useState({
     type: '',
     key: '',
     operator: '',
     value: ''
-  })
+  });
 
   const [outputVariable, setOutputVariable] = useState({
     type: '',
     key: '',
     value: ''
-  })
+  });
 
   const [reference, setReference] = useState({
     referenceType: '',
     referenceUrl: '',
     inputVariable: inputVariable,
     outputVariable: outputVariable
-  })
+  });
 
   const [step, setStep] = useState({
     stepName: '',
     stepType: '',
     useLabel: '',
     references: []
-  })
+  });
 
   useEffect(() => {
     if (isEdit && normalizedInitialData) {
@@ -140,8 +146,7 @@ const StepBoxPopup = ({ open, handleClose, onSubmit, initialData, isEdit, allFil
         references: []
       });
     }
-  }, [isEdit, normalizedInitialData]);
-  
+  }, [isEdit]);
 
   const handleChange = (e) => {
     setStep({ ...step, [e.target.name]: e.target.value });
@@ -149,12 +154,12 @@ const StepBoxPopup = ({ open, handleClose, onSubmit, initialData, isEdit, allFil
 
   const handleReferenceChange = (e) => {
     setReference({ ...reference, [e.target.name]: e.target.value });
-  }
+  };
 
   const handleOutputVariableChange = (e) => {
     const { name, value } = e.target;
     setOutputVariable({ ...outputVariable, [name]: value });
-  }
+  };
 
   const removeReference = (index) => {
     const updatedReferences = step.references.filter((_, i) => i !== index);
@@ -162,29 +167,21 @@ const StepBoxPopup = ({ open, handleClose, onSubmit, initialData, isEdit, allFil
   };
 
   const handleSaveReference = () => {
+  
     const newReference = {
       ...reference,
+      inputVariable: { ...inputVariable },
       outputVariable: { ...outputVariable }
     };
-
-    if (isRefEdit && currentRefIndex !== null) {
-      const updatedReferences = [...step.references];
-      updatedReferences[currentRefIndex] = newReference;
-      setStep({
-        ...step,
-        references: updatedReferences
-      });
-    } else {
-      setStep({ ...step, references: [...step.references, newReference] });
-    }
+    
+    const updatedStep = addNewReference(step,newReference);
+    setStep(updatedStep);
 
     setReferenceBoxOpen(false);
     setReference({ referenceType: '', referenceUrl: '', inputVariable: {}, outputVariable: {} });
+    setInputVariable({ type: '', key: '', operator: '', value: '' });
     setOutputVariable({ type: '', key: '', value: '' });
-    setIsRefEdit(false);
-    setCurrentRefIndex(null);
   };
-
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -192,26 +189,20 @@ const StepBoxPopup = ({ open, handleClose, onSubmit, initialData, isEdit, allFil
     handleClose();
   };
 
-  
- 
-
   const normalizePath = (path) => {
-    if(path){
+    if (path) {
       return path.replace(/\\/g, '/'); // Convert all backslashes to forward slashes
     } else {
       console.log('path is invalid');
     }
-    
   };
 
+  const handleEditReference = (index) => { 
   
-  const handleEditReference = (index) => {    
-    const reference = normalizedInitialData.references[index];
+    const reference = step.references[index];
     if(reference.referenceType == "JSONRef"){
-      const jsonRef = normalizedInitialData.references[index].referenceUrl; // Path from normalizedInitialData
-      console.log(jsonRef);      
+      const jsonRef = step.references[index].referenceUrl; // Path from normalizedInitialData      
       const file = allFiles.find(file => normalizePath(file.filePath).includes(normalizePath(jsonRef)));
-      console.log(file);
       
       if (file) {
         navigate('/add-ref', { state: { fileData: file, allFiles: allFiles } });
@@ -219,11 +210,9 @@ const StepBoxPopup = ({ open, handleClose, onSubmit, initialData, isEdit, allFil
         console.log('File not found for referenceIndex:', index);
       }
     } else if (reference.referenceType == "funcRef") {
-
+      // Handle funcRef editing here
     }
-    
   };
-
 
   return (
     <Modal
@@ -231,15 +220,16 @@ const StepBoxPopup = ({ open, handleClose, onSubmit, initialData, isEdit, allFil
       onClose={handleClose}
       aria-labelledby="modal-title"
       aria-describedby="modal-description"
+      className={classes.modalContainer}
     >
-      <Box sx={style}>
+      <Box className={classes.modalContent}>
         <Typography id="modal-title" className='heading'>
-          {isEdit ? <h3>Edit Step</h3> : <h3>Add Step</h3>}
+          {isEdit ? <h3>Step Details</h3> : <h3>Step Details</h3>}
         </Typography>
         <HeaderDivider
           title={
             <div style={{ display: 'flex' }}>
-              <h3 className={classes.headerStyle}>Steps Information</h3>
+              <h3 className={classes.headerStyle}>General Information</h3>
             </div>
           }
         />
@@ -285,8 +275,9 @@ const StepBoxPopup = ({ open, handleClose, onSubmit, initialData, isEdit, allFil
                 value={step.useLabel}
                 onChange={handleChange}
               >
-                <MenuItem key='logistics' value='logistics'> Logistics </MenuItem>
-                <MenuItem key='carrierGo' value='carrierGo'> CarrierGo </MenuItem>
+                {ALL_OBJECTS.map((option) => (
+                  <MenuItem key={option.label} value={option.label}> {option.label} </MenuItem>
+                ))}
               </TextField>
             </Grid>
           </Grid>
@@ -301,7 +292,7 @@ const StepBoxPopup = ({ open, handleClose, onSubmit, initialData, isEdit, allFil
                 </div>
               }
             />
-            <Grid container style={{paddingLeft: '2%', paddingBottom: '20px'}} >
+            <Grid container style={{ paddingLeft: '2%', paddingBottom: '20px' }} >
               <ul className='listItem'>
                 {step.references.map((reference, index) => (
                   <li key={index} className="stepItem">  
@@ -437,7 +428,6 @@ const StepBoxPopup = ({ open, handleClose, onSubmit, initialData, isEdit, allFil
             </Grid>
           </Grid>
 
-
           <Grid item xs={12}>
             <Button type="submit" variant="contained" color="primary">
               {isEdit ? "Update Step" : "Save Step"}
@@ -445,7 +435,7 @@ const StepBoxPopup = ({ open, handleClose, onSubmit, initialData, isEdit, allFil
           </Grid>
         </form>
       </Box>
-    </Modal >
+    </Modal>
   );
 };
 
