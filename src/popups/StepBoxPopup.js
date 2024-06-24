@@ -9,6 +9,8 @@ import HeaderDivider from '../components/headerWithDivider';
 import { makeStyles } from '@material-ui/core';
 import { Link } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
+import CloseIcon from '@mui/icons-material/Close';
+import ReferencePopup from './ReferencePopup';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -91,7 +93,7 @@ const getNormalizedInitialData = (initialData) => {
   return null;
 };
 
-const addNewReference = (step,reference) => {
+const addNewReference = (step, reference) => {
   const updatedStep = {
     ...step,
     references: [...step.references, reference]
@@ -108,6 +110,9 @@ const StepBoxPopup = ({ open, handleClose, onSubmit, initialData, isEdit, allFil
   const normalizedInitialData = getNormalizedInitialData(initialData);
 
   const [referenceBoxOpen, setReferenceBoxOpen] = useState(false);
+  const [referencePopupOpen, setReferencePopupOpen] = useState(false);
+  const [currentReferenceIndex, setCurrentReferenceIndex] = useState(null);
+  const [isReferenceEdit, setIsReferenceEdit] = useState(false);
   const [inputVariable, setInputVariable] = useState({
     type: '',
     key: '',
@@ -166,21 +171,41 @@ const StepBoxPopup = ({ open, handleClose, onSubmit, initialData, isEdit, allFil
     setStep({ ...step, references: updatedReferences });
   };
 
-  const handleSaveReference = () => {
-  
+  const handleSaveReferences = () => {
+
     const newReference = {
       ...reference,
       inputVariable: { ...inputVariable },
       outputVariable: { ...outputVariable }
     };
-    
-    const updatedStep = addNewReference(step,newReference);
+
+    const updatedStep = addNewReference(step, newReference);
     setStep(updatedStep);
 
     setReferenceBoxOpen(false);
     setReference({ referenceType: '', referenceUrl: '', inputVariable: {}, outputVariable: {} });
     setInputVariable({ type: '', key: '', operator: '', value: '' });
     setOutputVariable({ type: '', key: '', value: '' });
+  };
+
+
+  const handleSaveReference = (selectedReference) => {
+    if (isReferenceEdit) {
+      const updatedReference = [...step.references];
+      updatedReference[currentReferenceIndex] = selectedReference;
+      setStep({ ...step, references: updatedReference });
+    } else {
+      setStep({ ...step, references: [...step.references, selectedReference] });
+    }
+    handleCloseReferencePopup();
+  };
+
+
+
+  const handleCloseReferencePopup = () => {
+    setReferencePopupOpen(false);
+    setIsReferenceEdit(false);
+    setCurrentReferenceIndex(null);
   };
 
   const handleSubmit = (e) => {
@@ -197,13 +222,13 @@ const StepBoxPopup = ({ open, handleClose, onSubmit, initialData, isEdit, allFil
     }
   };
 
-  const handleEditReference = (index) => { 
-  
+  const handleEditReference = (index) => {
+
     const reference = step.references[index];
-    if(reference.referenceType == "JSONRef"){
+    if (reference.referenceType == "JSONRef") {
       const jsonRef = step.references[index].referenceUrl; // Path from normalizedInitialData      
       const file = allFiles.find(file => normalizePath(file.filePath).includes(normalizePath(jsonRef)));
-      
+
       if (file) {
         navigate('/add-ref', { state: { fileData: file, allFiles: allFiles } });
       } else {
@@ -223,9 +248,14 @@ const StepBoxPopup = ({ open, handleClose, onSubmit, initialData, isEdit, allFil
       className={classes.modalContainer}
     >
       <Box className={classes.modalContent}>
-        <Typography id="modal-title" className='heading'>
-          {isEdit ? <h3>Step Details</h3> : <h3>Step Details</h3>}
-        </Typography>
+        <Grid container justifyContent="space-between" alignItems="center">
+          <Typography id="modal-title" className='heading'>
+            {isEdit ? <h3>Step Details</h3> : <h3>Step Details</h3>}
+          </Typography>
+          <IconButton style={{ backgroundColor: 'red', color: 'white' }} onClick={handleClose}>
+            <CloseIcon />
+          </IconButton>
+        </Grid>
         <HeaderDivider
           title={
             <div style={{ display: 'flex' }}>
@@ -295,10 +325,10 @@ const StepBoxPopup = ({ open, handleClose, onSubmit, initialData, isEdit, allFil
             <Grid container style={{ paddingLeft: '2%', paddingBottom: '20px' }} >
               <ul className='listItem'>
                 {step.references.map((reference, index) => (
-                  <li key={index} className="stepItem">  
+                  <li key={index} className="stepItem">
                     <span className="stepName">
                       {reference.referenceType || `Reference ${index + 1}`}
-                    </span>                  
+                    </span>
                     <div className="stepReference">
                       <Tooltip title="Edit">
                         <IconButton onClick={() => handleEditReference(index)}>
@@ -314,128 +344,142 @@ const StepBoxPopup = ({ open, handleClose, onSubmit, initialData, isEdit, allFil
                   </li>
                 ))}
               </ul>
-              {referenceBoxOpen ?
-                <Grid container direction="row" spacing={2}>
-                  <Grid item xs={12} md={6}>
-                    <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
-                      ReferenceType
-                      <span style={{ color: 'red' }}>*</span>
-                    </div>
-                    <TextField
-                      select
-                      name="referenceType"
-                      placeholder='Select Action Type'
-                      style={{ width: '300px' }}
-                      value={reference.referenceType}
-                      onChange={handleReferenceChange}
-                    >
-                      <MenuItem key='funcRef' value='funcRef'> Functional Reference </MenuItem>
-                      <MenuItem key='JSONRef' value='JSONRef'> JSON Reference </MenuItem>
-                    </TextField>
-                  </Grid>
-                  <Grid item xs={12} md={6} ls={6} xl={6}>
-                    <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
-                      Url
-                      <span style={{ color: 'red' }}>*</span>
-                    </div>
-                    <TextField
-                      margin='dense'
-                      name='referenceUrl'
-                      type='text'
-                      variant='outlined'
-                      id="referenceUrl"
-                      onChange={handleReferenceChange}
-                      value={reference.referenceUrl}
-                      placeholder="Enter Url"
-                    />
-                  </Grid>
+              <Button
+                variant="contained" color="primary" className="add-step-button"
+                onClick={() => setReferencePopupOpen(true)}
+              >
+                Add Reference
+              </Button>
+              <ReferencePopup
+                open={referencePopupOpen}
+                handleClose={handleCloseReferencePopup}
+                onSubmit={handleSaveReference}
+                initialData={isReferenceEdit ? step.references[currentReferenceIndex] : null}
+                isEdit={isReferenceEdit}
+              />
+            </Grid>
+            {referenceBoxOpen ?
+              <Grid container direction="row" spacing={2}>
+                <Grid item xs={12} md={6}>
+                  <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
+                    ReferenceType
+                    <span style={{ color: 'red' }}>*</span>
+                  </div>
+                  <TextField
+                    select
+                    name="referenceType"
+                    placeholder='Select Action Type'
+                    style={{ width: '300px' }}
+                    value={reference.referenceType}
+                    onChange={handleReferenceChange}
+                  >
+                    <MenuItem key='funcRef' value='funcRef'> Functional Reference </MenuItem>
+                    <MenuItem key='JSONRef' value='JSONRef'> JSON Reference </MenuItem>
+                  </TextField>
+                </Grid>
+                <Grid item xs={12} md={6} ls={6} xl={6}>
+                  <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
+                    FilePath
+                    <span style={{ color: 'red' }}>*</span>
+                  </div>
+                  <TextField
+                    margin='dense'
+                    name='referenceUrl'
+                    type='text'
+                    variant='outlined'
+                    id="referenceUrl"
+                    onChange={handleReferenceChange}
+                    value={reference.referenceUrl}
+                    placeholder="Enter FilePath"
+                  />
+                </Grid>
 
-                  {/* Output Variable Grid */}
+                {/* Output Variable Grid */}
 
-                  <Grid container style={{ marginBottom: '2%', paddingLeft: '2%' }}>
-                    <HeaderDivider
-                      title={
-                        <div style={{ display: 'flex' }}>
-                          <h3 className={classes.headerStyle}>Output Variables</h3>
-                        </div>
-                      }
-                    />
-                    <Grid container direction="row" style={{ paddingLeft: '2%', paddingBottom: '20px' }}>
-                      <Grid item xs={12} md={6} ls={6} xl={6}>
-                        <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
-                          Type
-                        </div>
-                        <TextField
-                          select
-                          name="type"
-                          placeholder='Select Type'
-                          style={{ width: '300px' }}
-                          value={outputVariable.type}
-                          onChange={handleOutputVariableChange}
-                        >
-                          {STEP_TYPE_OPTIONS.map((option) => (
-                            <MenuItem key={option} value={option}> {option} </MenuItem>
-                          ))}
-                        </TextField>
-                      </Grid>
-                      <Grid item xs={12} md={6} ls={6} xl={6}>
-                        <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
-                          Value
-                        </div>
-                        <TextField
-                          margin='dense'
-                          name="value"
-                          placeholder="Enter Value"
-                          type='text'
-                          onChange={handleOutputVariableChange}
-                          value={outputVariable.value}
-                          variant='outlined'
-                        />
-                      </Grid>
-                      <Grid item xs={12} md={6} ls={6} xl={6}>
-                        <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
-                          Key
-                        </div>
-                        <TextField
-                          margin='dense'
-                          name="key"
-                          placeholder="Enter Key"
-                          id="key"
-                          type='text'
-                          onChange={handleOutputVariableChange}
-                          value={outputVariable.key}
-                          variant='outlined'
-                        />
-                      </Grid>
+                <Grid container style={{ marginBottom: '2%', paddingLeft: '2%' }}>
+                  <HeaderDivider
+                    title={
+                      <div style={{ display: 'flex' }}>
+                        <h3 className={classes.headerStyle}>Output Variables</h3>
+                      </div>
+                    }
+                  />
+                  <Grid container direction="row" style={{ paddingLeft: '2%', paddingBottom: '20px' }}>
+                    <Grid item xs={12} md={6} ls={6} xl={6}>
+                      <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
+                        Type
+                      </div>
+                      <TextField
+                        select
+                        name="type"
+                        placeholder='Select Type'
+                        style={{ width: '300px' }}
+                        value={outputVariable.type}
+                        onChange={handleOutputVariableChange}
+                      >
+                        {STEP_TYPE_OPTIONS.map((option) => (
+                          <MenuItem key={option} value={option}> {option} </MenuItem>
+                        ))}
+                      </TextField>
+                    </Grid>
+                    <Grid item xs={12} md={6} ls={6} xl={6}>
+                      <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
+                        Value
+                      </div>
+                      <TextField
+                        margin='dense'
+                        name="value"
+                        placeholder="Enter Value"
+                        type='text'
+                        onChange={handleOutputVariableChange}
+                        value={outputVariable.value}
+                        variant='outlined'
+                      />
+                    </Grid>
+                    <Grid item xs={12} md={6} ls={6} xl={6}>
+                      <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
+                        Key
+                      </div>
+                      <TextField
+                        margin='dense'
+                        name="key"
+                        placeholder="Enter Key"
+                        id="key"
+                        type='text'
+                        onChange={handleOutputVariableChange}
+                        value={outputVariable.key}
+                        variant='outlined'
+                      />
                     </Grid>
                   </Grid>
+                </Grid>
 
-                  <Grid item xs={12} md={4} ls={4} xl={4}>
-                    <Button
-                      variant="contained" color="primary" className="button"
-                      onClick={handleSaveReference}
-                    >
-                      Save Reference
-                    </Button>
-                  </Grid>
-                </Grid> :
-                <Button
-                  variant="contained" color="primary" className="button"
-                  onClick={() => setReferenceBoxOpen(true)}
-                >
-                  Add Reference
-                </Button>}
-            </Grid>
+                <Grid item xs={12} md={4} ls={4} xl={4}>
+                  <Button
+                    variant="contained" color="primary" className="button"
+                    onClick={handleSaveReferences}
+                  >
+                    Save Reference
+                  </Button>
+                </Grid>
+              </Grid> :
+              <Button
+                variant="contained" color="primary" className="button"
+                onClick={() => setReferenceBoxOpen(true)}
+              >
+                Add Reference
+              </Button>}
           </Grid>
+        
 
-          <Grid item xs={12}>
-            <Button type="submit" variant="contained" color="primary">
-              {isEdit ? "Update Step" : "Save Step"}
-            </Button>
-          </Grid>
-        </form>
-      </Box>
-    </Modal>
+        <Grid item xs={12}>
+          <Button type="submit" variant="contained" color="primary">
+            {isEdit ? "Update Step" : "Save Step"}
+          </Button>
+        </Grid>
+      </form>
+    </Box>
+    </Modal >
   );
 };
 

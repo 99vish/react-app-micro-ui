@@ -5,11 +5,12 @@ import { STEP_TYPE_OPTIONS, ACTION_TYPE_OPTIONS, OBJECTS_OPTIONS, SELECTOR_TYPE_
 import { Autocomplete, MenuItem, IconButton, Tooltip } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import ActionsPopup from '../popups/ActionPopup';
+import ActionPopup from '../popups/ActionPopup';
 import { useLocation } from 'react-router-dom';
 import AddIcon from '@mui/icons-material/Add';
 import AssertionBoxPopup from '../popups/AssertionPopup';
 import OutputVariablePopup from '../popups/OutputVariablePopup';
+import InputVariablePopup from '../popups/InputVariablePopup';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -51,23 +52,23 @@ export default function AddRule(props) {
   const { fileData, allFiles } = location.state;
 
   const [jsonFileContent, setJsonFileContent] = useState(() => JSON.parse(fileData.fileContent));
-
- console.log(jsonFileContent);
- console.log(jsonFileContent.actions)
-
-
-  const [isEdit, setIsEdit] = useState(false);
+  const [inputVariablePopupOpen, setInputVariablePopupOpen] = useState(false)
+  const [isInputVariableEdit, setIsInputVariableEdit] = useState(false)
+  const [currentInputVariableIndex, setCurrentInputVariableIndex] = useState(false)
+  const [actionPopupOpen, setActionPopupOpen] = useState(false);
+  const [isActionEdit, setIsActionEdit] = useState(false);
   const [currentActionIndex, setCurrentActionIndex] = useState(null);
-  const [popup, setPopup] = useState(false)
-  const [assertionBoxOpen, setAssertionBoxOpen] = useState(false)
-  const [isAssertionEdit, setIsAssertionEdit] = useState(false)
-  const [currentAssertionIndex, setCurrentAssertionIndex] = useState(null)
-  const [outputVariablePopupOpen, setOutputVariablePopupOpen] = useState(false)
-  const [isOutputVariableEdit, setIsOutputVariableEdit] = useState(false)
-  const [currentOutputVariableIndex, setCurrentOutputVariableIndex] = useState(null)
-
+  const [assertionPopupOpen, setAssertionPopupOpen] = useState(false);
+  const [isAssertionEdit, setIsAssertionEdit] = useState(false);
+  const [currentAssertionIndex, setCurrentAssertionIndex] = useState(null);
+  const [outputVariablePopupOpen, setOutputVariablePopupOpen] = useState(false);
+  const [isOutputVariableEdit, setIsOutputVariableEdit] = useState(false);
+  const [currentOutputVariableIndex, setCurrentOutputVariableIndex] = useState(null);
+  const [refType, setRefType] = useState('UI')
+  const [params, setParams] = useState(false)
 
   const [steps, setSteps] = useState({
+    inputVariables: [],
     assertion: [],
     outputVariables: [],
     actions: []
@@ -81,6 +82,31 @@ export default function AddRule(props) {
 
   console.log(fileData);
 
+  const handleSaveInputVaraible = (inputVariables) => {
+    console.log(inputVariables)
+    setSteps({ ...steps, inputVariables: inputVariables })
+    handleCloseInputVariablePopup();
+  };
+
+  console.log(jsonFileContent);
+  console.log(jsonFileContent.actions)
+
+  const handleInputVariableEditButtonClick = (index) => {
+    const inputVariableToEdit = steps.inputVariables[index];
+    if (inputVariableToEdit) {
+      setCurrentInputVariableIndex(index);
+      setIsInputVariableEdit(true);
+      setInputVariablePopupOpen(true)
+    }
+  };
+
+  const handleCloseInputVariablePopup = () => {
+    setInputVariablePopupOpen(false);
+    setIsInputVariableEdit(false);
+    setCurrentInputVariableIndex(null);
+  };
+
+
   const handleSaveAssertion = (selectedAssertion) => {
     if (isAssertionEdit) {
       const updatedAssertions = [...steps.assertion];
@@ -92,17 +118,18 @@ export default function AddRule(props) {
     handleCloseAssertionBox();
   };
 
+
   const handleAssertionEditButtonClick = (index) => {
     const assertionToEdit = steps.assertion[index];
     if (assertionToEdit) {
       setCurrentAssertionIndex(index);
       setIsAssertionEdit(true);
-      setAssertionBoxOpen(true)
+      setAssertionPopupOpen(true)
     }
   };
 
   const handleCloseAssertionBox = () => {
-    setAssertionBoxOpen(false);
+    setAssertionPopupOpen(false);
     setIsAssertionEdit(false);
     setCurrentAssertionIndex(null);
   };
@@ -133,33 +160,35 @@ export default function AddRule(props) {
     setCurrentOutputVariableIndex(null);
   };
 
-  const handleOpenPopup = () => setPopup(true);
+  const handleOpenPopup = () => setActionPopupOpen(true);
 
   const handleEditButtonClick = (index) => {
     setCurrentActionIndex(index);
-    setIsEdit(true);
+    setIsActionEdit(true);
     handleOpenPopup();
+    setParams(true)
   };
 
   const handleClosePopup = () => {
-    setPopup(false);
-    setIsEdit(false);
+    setActionPopupOpen(false);
+    setIsActionEdit(false);
     setCurrentActionIndex(null);
+    setParams(false)
   };
 
 
   const handleSaveAction = (selectedAction) => {
-    const { actionType, params } = selectedAction;
-    const action = { [actionType]: params }
-    if (isEdit) {
-        const updatedActions = [...steps.actions];
-        updatedActions[currentActionIndex] = action;
-        setSteps({ ...steps, actions: updatedActions });
+    if (isActionEdit) {
+      const updatedActions = [...steps.actions];
+      updatedActions[currentActionIndex] = selectedAction;
+      setSteps({ ...steps, actions: updatedActions });
     } else {
-        setSteps({ ...steps, actions: [...steps.actions, action] });
+      setSteps({ ...steps, actions: [...steps.actions, selectedAction] });
     }
-    setPopup(false);
-};
+    setActionPopupOpen(false);
+    setParams(false)
+  };
+
 
   const removeItem = (arrayName, index) => {
     setSteps((prevSteps) => {
@@ -167,7 +196,14 @@ export default function AddRule(props) {
       return { ...prevSteps, [arrayName]: updatedArray };
     });
   };
-  
+
+  const handleRefTypeChange = (e) => {
+    const { name, value } = e.target;
+    setRefType(value)
+  }
+
+  console.log(jsonFileContent);
+  console.log(jsonFileContent.actions)
 
   const generateJson = () => {
     const json = JSON.stringify(steps, null, 2);
@@ -213,33 +249,48 @@ export default function AddRule(props) {
         </Grid>
       </div>
 
-      {/* Assertions Grid */}
 
-      {jsonFileContent.assertion && jsonFileContent.assertion.length > 0 && (
+      {/* Input Varaible Grid */}
+
+      {/* {jsonFileContent.assertion && jsonFileContent.assertion.length > 0 && ( */}
       <Grid className='steps-grid' container direction="row" style={{ paddingBottom: '5px', paddingTop: '20px' }}>
+        <Grid item xs={1} md={1}>
+
+          <TextField
+            select
+            placeholder='Reference Type'
+            name="refType"
+            value={refType}
+            onChange={handleRefTypeChange}
+            fullWidth
+          >
+            <MenuItem key="UI" value="UI">UI</MenuItem>
+            <MenuItem key="API" value="API">API</MenuItem>
+          </TextField>
+        </Grid>
         <HeaderDivider
           title={
             <div style={{ display: 'flex' }}>
-              <h3 className={classes.headerStyle}>Assertions</h3>
+              <h3 className={classes.headerStyle}>Input Variables</h3>
             </div>
           }
         />
         <Grid container direction="row" style={{ paddingLeft: '2%', paddingBottom: '20px' }}>
           <ul className='listItem'>
-            {steps.assertion.map((assertion, index) => (
+            {Array.isArray(steps?.inputVariables) && steps?.inputVariables.map((inputVariable, index) => (
               <li key={index} className="stepItem">
-                <span className="stepName">{`assertion ${index + 1} --- ${assertion.type}`}</span>
+                <span className="stepName">{`inputVariable ${index + 1} --- ${inputVariable.type}`}</span>
                 <div className='stepReferences'>
                   <Tooltip title="Edit">
                     <IconButton
-                      onClick={() => handleAssertionEditButtonClick(index)}
+                      onClick={() => handleInputVariableEditButtonClick(index)}
                     >
                       <EditIcon />
                     </IconButton>
                   </Tooltip>
                   <Tooltip title="Delete">
                     <IconButton
-                      onClick={() => removeItem('assertion', index)}
+                      onClick={() => removeItem('inputVariables', index)}
                     >
                       <DeleteIcon />
                     </IconButton>
@@ -250,26 +301,126 @@ export default function AddRule(props) {
           </ul>
           <Button
             variant="contained" color="primary" className="add-step-button"
-            onClick={() => setAssertionBoxOpen(true)}
+            onClick={() => setInputVariablePopupOpen(true)}
           >
-            Add Assertion
+            Add InputVariable
           </Button>
-          <AssertionBoxPopup
-            open={assertionBoxOpen}
-            handleClose={handleCloseAssertionBox}
-            onSubmit={handleSaveAssertion}
-            initialData={isAssertionEdit ? steps.assertion[currentAssertionIndex] : null}
-            isEdit={isAssertionEdit}
+          <InputVariablePopup
+            open={inputVariablePopupOpen}
+            handleClose={handleCloseInputVariablePopup}
+            onSubmit={handleSaveInputVaraible}
+            initialData={isInputVariableEdit ? steps.inputVariables[currentInputVariableIndex] : null}
+            isEdit={isInputVariableEdit}
           />
         </Grid>
-
       </Grid>
+      {/* )} */}
+
+      {/* Assertions Grid */}
+
+      {jsonFileContent.assertion && jsonFileContent.assertion.length > 0 && (
+        <Grid className='steps-grid' container direction="row" style={{ paddingBottom: '20px', paddingTop: '20px' }}>
+          <HeaderDivider
+            title={
+              <div style={{ display: 'flex' }}>
+                <h3 className={classes.headerStyle}>Assertions</h3>
+              </div>
+            }
+          />
+          <Grid container direction="row" style={{ paddingLeft: '2%', paddingBottom: '20px' }}>
+            <ul className='listItem'>
+              {steps.assertion.map((assertion, index) => (
+                <li key={index} className="stepItem">
+                  <span className="stepName">{`assertion ${index + 1} --- ${assertion.type}`}</span>
+                  <div className='stepReferences'>
+                    <Tooltip title="Edit">
+                      <IconButton
+                        onClick={() => handleAssertionEditButtonClick(index)}
+                      >
+                        <EditIcon />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Delete">
+                      <IconButton
+                        onClick={() => removeItem('assertion', index)}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </Tooltip>
+                  </div>
+                </li>
+              ))}
+            </ul>
+            <Button
+              variant="contained" color="primary" className="add-step-button"
+              onClick={() => setAssertionPopupOpen(true)}
+            >
+              Add Assertion
+            </Button>
+            <AssertionBoxPopup
+              open={assertionPopupOpen}
+              handleClose={handleCloseAssertionBox}
+              onSubmit={handleSaveAssertion}
+              initialData={isAssertionEdit ? steps.assertion[currentAssertionIndex] : null}
+              isEdit={isAssertionEdit}
+            />
+          </Grid>
+
+        </Grid>
       )}
 
-      {/* Output Variables */}
-      {/* Conditionally render Output Variables Grid if outputVariable exists */}
-      {jsonFileContent.outputVariable && Object.keys(jsonFileContent.outputVariable).length > 0 && (
-      <Grid container style={{ marginBottom: '2%' }}>
+      {/* Actions Grid  */}
+      
+      <Grid className='actions-grid' container direction="row" style={{ paddingBottom: '2%' }}>
+        <HeaderDivider
+          title={
+            <div style={{ display: 'flex' }}>
+              <h3 className={classes.headerStyle}>Actions</h3>
+            </div>
+          }
+        />
+        <Grid container direction="row" style={{ paddingLeft: '2%', paddingBottom: '20px' }}>
+          <ul className='listItem'>
+            {steps.actions.map((action, index) => (
+              <li key={index} className="actionItem">
+                <span className="actionName">{`Action ${index + 1} --- ${action.actionType}`}</span>
+                <div className='stepActions'>
+                  <Tooltip title="Edit">
+                    <IconButton
+                      onClick={() => handleEditButtonClick(index)}
+                    >
+                      <EditIcon />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title="Delete">
+                    <IconButton
+                      onClick={() => removeItem('actions', index)}
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </Tooltip>
+                </div>
+              </li>
+            ))}
+          </ul>
+          <Button
+            variant="contained" color="primary" className="button"
+            onClick={() => setActionPopupOpen(true)}
+          >
+            Add Action
+          </Button>
+        </Grid>
+        <ActionPopup
+          open={actionPopupOpen}
+          openParams={params}
+          handleClose={handleClosePopup}
+          onSubmit={handleSaveAction}
+          initialData={isActionEdit ? steps.actions[currentActionIndex] : null}
+          isEdit={isActionEdit}
+          actionsData={jsonFileContent.actions}
+        />
+      </Grid>
+      <Grid container style={{ marginBottom: '20px' }}>
         <HeaderDivider
           title={
             <div style={{ display: 'flex' }}>
@@ -279,7 +430,7 @@ export default function AddRule(props) {
         />
         <Grid container direction="row" style={{ paddingLeft: '2%', paddingBottom: '20px' }}>
           <ul className='listItem'>
-            {steps.outputVariables.map((outputVariable, index) => (
+            {Array.isArray(steps?.inputVariables) && steps?.outputVariables.map((outputVariable, index) => (
               <li key={index} className="stepItem">
                 <span className="stepName">{`outputVariable ${index + 1} --- ${outputVariable.type}`}</span>
                 <div className='stepReferences'>
@@ -316,58 +467,7 @@ export default function AddRule(props) {
           />
         </Grid>
       </Grid>
-      )}
 
-      {jsonFileContent.actions && Object.keys(jsonFileContent.actions).length > 0 && (
-      <Grid className='actions-grid' container direction="row" style={{ paddingBottom: '2%' }}>
-        <HeaderDivider
-          title={
-            <div style={{ display: 'flex' }}>
-              <h3 className={classes.headerStyle}>Actions</h3>
-            </div>
-          }
-        />
-        <Grid container direction="row" style={{ paddingLeft: '2%', paddingBottom: '20px' }}>
-          <ul className='listItem'>
-            {steps.actions.map((action, index) => (
-              <li key={index} className="actionItem">
-                <span className="actionName">{`Action ${index + 1} --- ${action.actionType}`}</span>
-                <div className='stepActions'>
-                  <Tooltip title="Edit">
-                    <IconButton
-                      onClick={() => handleEditButtonClick(index)}
-                    >
-                      <EditIcon />
-                    </IconButton>
-                  </Tooltip>
-                  <Tooltip title="Delete">
-                    <IconButton
-                      onClick={() => removeItem('actions', index)}
-                    >
-                      <DeleteIcon />
-                    </IconButton>
-                  </Tooltip>
-                </div>
-              </li>
-            ))}
-          </ul>
-          <Button
-            variant="contained" color="primary" className="button"
-            onClick={() => setPopup(true)}
-          >
-            Add Action
-          </Button>
-        </Grid>
-        <ActionsPopup
-          open={popup}
-          handleClose={handleClosePopup}
-          onSubmit={handleSaveAction}
-          initialData={isEdit ? jsonFileContent.actions[currentActionIndex] : null}
-          isEdit={isEdit}
-          actionsData = {jsonFileContent.actions}
-        />
-      </Grid>
-      )}
     </Grid>
   )
 }

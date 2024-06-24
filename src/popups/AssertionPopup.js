@@ -5,6 +5,7 @@ import { STEP_TYPE_OPTIONS } from '../constants/constants';
 import HeaderDivider from '../components/headerWithDivider';
 import { makeStyles } from '@material-ui/core';
 import AddIcon from '@mui/icons-material/Add';
+import CloseIcon from '@mui/icons-material/Close';
 
 const style = {
   position: 'absolute',
@@ -116,9 +117,14 @@ const AssertionPopup = ({ open, handleClose, onSubmit, initialData, isEdit }) =>
       aria-describedby="modal-description"
     >
       <Box sx={style}>
-        <Typography id="modal-title" className='heading'>
-          {isEdit ? <h3>Edit Assertion</h3> : <h3>Add Assertion</h3>}
-        </Typography>
+        <Grid container justifyContent="space-between" alignItems="center">
+          <Typography id="modal-title" className='heading'>
+            {isEdit ? <h3>Edit Assertion</h3> : <h3>Add Assertion</h3>}
+          </Typography>
+          <IconButton style={{ backgroundColor: 'red', color: 'white' }} onClick={handleClose}>
+            <CloseIcon />
+          </IconButton>
+        </Grid>
         <HeaderDivider
           title={
             <div style={{ display: 'flex' }}>
