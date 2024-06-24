@@ -65,11 +65,12 @@ export default function AddSteps(props) {
   // const context = useContext(AppContext);
   const classes = useStyles();
   const location = useLocation();
+
   const { fileData, allFiles } = location.state;
 
   console.log(JSON.parse(fileData.fileContent).beforeAll);
 
-
+  const { fileData, allFiles } = location.state;
   const [stepBoxOpen, setStepBoxOpen] = useState(false)
   const [currentStepIndex, setCurrentStepIndex] = useState(null);
   const [isEdit, setIsEdit] = useState(false);
@@ -87,20 +88,6 @@ export default function AddSteps(props) {
   });
 
   
-
-  const [actions, setActions] = useState({
-    actionType: '',
-    selectorType: '',
-    selectedObject: '',
-    selector: '',
-    occurance: '',
-    x: '',
-    y: '',
-    value: ''
-  })
-  const [selectorTypeIndex, setSelectorTypeIndex] = useState(0)
-  const [selectedOptions, setSelectedOptions] = useState([])
-
   useEffect(() => {
     if (fileData) {
       setFormData(JSON.parse(fileData.fileContent));
@@ -319,7 +306,6 @@ export default function AddSteps(props) {
             <Grid item xs={12} md={6} ls={6} xl={6}>
               <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
                 Data Source - Row ID
-                <span style={{ color: 'red' }}>*</span>
               </div>
               <TextField
                 margin='dense'
@@ -407,7 +393,7 @@ export default function AddSteps(props) {
             <ul className='listItem'>
               {formData.steps.map((step, index) => (
                 <li key={index} className="stepItem">
-                  <span className="stepName">{step.stepName || `Step ${index + 1}`}</span>
+                  <span className="stepName">{`${step.stepName} - (${step.stepType})` || `Step ${index + 1}`}</span>
                   <div className='stepReferences'>
                     <Tooltip title="Edit">
                       <IconButton
