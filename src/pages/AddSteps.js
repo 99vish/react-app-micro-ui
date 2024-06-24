@@ -7,6 +7,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import StepBoxPopup from '../popups/StepBoxPopup';
 import { useLocation } from 'react-router-dom';
+import HookPopup from '../popups/HookPopup';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -38,6 +39,25 @@ const useStyles = makeStyles((theme) => ({
     backgroundColor: 'white',
     borderRadius: '2px',
     border: '1px solid #DDDBDA'
+  },
+  hooksContainer: {
+    paddingLeft: '20px',
+    paddingRight: '20px',
+    paddingTop: '10px',
+    paddingBottom: '10px'
+  },
+  hookList: {
+    listStyleType: 'none',
+    paddingLeft: 0,
+  },
+  hookItem: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '10px'
+  },
+  hookName: {
+    flexGrow: 1,
   }
 }));
 
@@ -47,12 +67,15 @@ export default function AddSteps(props) {
   const location = useLocation();
   const { fileData, allFiles } = location.state;
 
-  console.log(fileData);
+  console.log(JSON.parse(fileData.fileContent).beforeAll);
 
 
   const [stepBoxOpen, setStepBoxOpen] = useState(false)
   const [currentStepIndex, setCurrentStepIndex] = useState(null);
   const [isEdit, setIsEdit] = useState(false);
+  const [hookDialogOpen, setHookDialogOpen] = useState(false);
+  const [currentHookIndex, setCurrentHookIndex] = useState(null);
+  const [currentHookType, setCurrentHookType] = useState(null);
   const [formData, setFormData] = useState(JSON.parse(fileData.fileContent) || {
   scenarioName: '',
   tags: '',
@@ -127,6 +150,37 @@ export default function AddSteps(props) {
     handleCloseStepBox();
   };
 
+  const handleHookDialogOpen = (hookType, hookIndex) => {
+    console.log(hookIndex);
+    setCurrentHookType(hookType);
+    setCurrentHookIndex(hookIndex);
+    setHookDialogOpen(true);
+  };
+
+  console.log(currentHookIndex);
+
+  const handleHookDialogClose = () => {
+    setHookDialogOpen(false);
+    setCurrentHookIndex(null);
+    setCurrentHookType(null);
+  };
+
+  const handleSaveHook = (hookData) => {
+    const updatedHooks = [...formData[currentHookType]];
+    if (currentHookIndex !== null) {
+      updatedHooks[currentHookIndex] = hookData;
+    } else {
+      updatedHooks.push(hookData);
+    }
+    setFormData({ ...formData, [currentHookType]: updatedHooks });
+    handleHookDialogClose();
+  };
+
+  const removeHook = (hookType, index) => {
+    const updatedHooks = formData[hookType].filter((_, i) => i !== index);
+    setFormData({ ...formData, [hookType]: updatedHooks });
+  };
+
   const saveAsJson = async () => {
 
       // Create a JSON string
@@ -170,8 +224,6 @@ export default function AddSteps(props) {
     document.body.removeChild(link);
     URL.revokeObjectURL(link.href);
     };
-
-
 
   return (
     <Grid container style={{ backgroundColor: "#fff" }}>
@@ -280,6 +332,65 @@ export default function AddSteps(props) {
               />
             </Grid>
           </Grid>
+        </Grid>
+
+        {/* Hooks Information Grid */}
+        <Grid container style={{ marginBottom: '2%' }}>
+          <HeaderDivider
+            title={
+              <div style={{ display: 'flex' }}>
+                <h3 className={classes.headerStyle}>Hooks Information</h3>
+              </div>
+            }
+          />
+          {['beforeAll', 'beforeEach', 'afterAll', 'afterEach'].map((hookType) => (
+            <Grid container direction="row" className={classes.hooksContainer}>
+              <HeaderDivider
+                title={
+                  <div style={{ display: 'flex' }}>
+                    <h3 className={classes.headerStyle}>{hookType.charAt(0).toUpperCase() + hookType.slice(1)}</h3>
+                  </div>
+                }
+              />
+              <Grid container direction="row" style={{ paddingLeft: '2%', paddingBottom: '20px' }}>
+                <ul className={classes.hookList}>
+                  {formData[hookType].map((hook, index) => (
+                    <li key={index} className={classes.hookItem}>
+                      <span className={classes.hookName}>{hook.name || `Hook ${index + 1}`}</span>
+                      <div className='stepReferences'>
+                        <Tooltip title="Edit">
+                          <IconButton
+                            onClick={() => handleHookDialogOpen(hookType, index)}
+                          >
+                            <EditIcon />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Delete">
+                          <IconButton
+                            onClick={() => removeHook(hookType, index)}
+                          >
+                            <DeleteIcon />
+                          </IconButton>
+                        </Tooltip>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+                <Button
+                  variant="contained" color="primary" className="add-hook-button"
+                  onClick={() => handleHookDialogOpen(hookType)}
+                >
+                  Add Hook
+                </Button>
+                <HookPopup
+                  open={hookDialogOpen && currentHookType === hookType} // Adjust condition based on your logic
+                  onClose={handleHookDialogClose}
+                  onSave={handleSaveHook}
+                  initialData={currentHookIndex !== null ? formData[hookType][currentHookIndex] : null}
+                />
+              </Grid>
+            </Grid>
+           ))} 
         </Grid>
 
         {/* Steps Information */}
