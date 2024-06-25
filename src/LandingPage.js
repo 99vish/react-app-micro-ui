@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import './LandingPage.css'; // Import your CSS file
 
 const LandingPage = () => {
-  const [filePath, setFilePath] = useState('');
+  const [filePath, setFilePath] = useState("C:\\Automation\\wtg-playwright-json-execution\\src\\inputs");
   const [files, setFiles] = useState([]);
   const [jsonFiles, setJsonFiles] = useState([]);
   const navigate = useNavigate();
