@@ -65,12 +65,10 @@ export default function AddSteps(props) {
   // const context = useContext(AppContext);
   const classes = useStyles();
   const location = useLocation();
-
-  const { fileData, allFiles } = location.state;
-
-  console.log(JSON.parse(fileData.fileContent).beforeAll);
-
-
+  
+  const {fileData, allFiles} = location.state
+  
+  
   const [stepBoxOpen, setStepBoxOpen] = useState(false)
   const [currentStepIndex, setCurrentStepIndex] = useState(null);
   const [isEdit, setIsEdit] = useState(false);

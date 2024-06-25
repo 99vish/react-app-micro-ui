@@ -16,9 +16,22 @@ export const ACTION_TYPE_OPTIONS = [
 	'clickAtPosition',
 	'hoverAtPosition',
 	'input',
+    'clickDate',
+    'refresh',
 	'keyPress'
 ];
 
+export const ASSERTION_OPERATOR_TYPE = [
+    'EQUALS',
+    'NOTEQUALS',
+    'CONTAINS'
+]
+
+export const ASSERTION_ASSERT_TYPE = [
+    'PAGELOAD',
+    'TEXT',
+    'VISIBLE'
+]
 export const SELECTOR_TYPE_OPTIONS = [
     'GENERIC_OBJECTS',
     'INVOICE_DETAILS_ELEMENT',

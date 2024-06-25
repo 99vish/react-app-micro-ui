@@ -69,7 +69,7 @@ export default function AddRule(props) {
   // const context = useContext(AppContext);
   const classes = useStyles();
   const location = useLocation();
-  const { fileData, allFiles } = location.state;
+  const { fileData, allFiles, stepType } = location.state;
 
   const [jsonFileContent, setJsonFileContent] = useState(() => JSON.parse(fileData.fileContent));
   const [inputVariablePopupOpen, setInputVariablePopupOpen] = useState(false)
@@ -129,7 +129,7 @@ export default function AddRule(props) {
 
   const handleOpenInputVariablePopup = () => {
     setInputVariablePopupOpen(true);
-    setIsInputVariableEdit(Object.keys(reference.inputVariables).length > 0);
+    setIsInputVariableEdit(reference?.inputVariables && Object.keys(reference.inputVariables).length > 0);
   };
 
 
@@ -139,7 +139,10 @@ export default function AddRule(props) {
       updatedAssertions[currentAssertionIndex] = selectedAssertion;
       setReference({ ...reference, assertion: updatedAssertions });
     } else {
-      setReference({ ...reference, assertion: [...reference.assertion, selectedAssertion] });
+      setReference((prevRef) => ({
+        ...prevRef,
+        assertion: prevRef.assertion ? [...prevRef.assertion, selectedAssertion] : [selectedAssertion]
+      }))
     }
     handleCloseAssertionBox();
   };
@@ -165,8 +168,12 @@ export default function AddRule(props) {
       const updatedOutputVariables = [...reference.outputVariables];
       updatedOutputVariables[currentOutputVariableIndex] = selectedOutputVariable;
       setReference({ ...reference, outputVariables: updatedOutputVariables });
-    } else {
-      setReference({ ...reference, outputVariables: [...reference.outputVariables, selectedOutputVariable] });
+    }
+    else {
+      setReference((prevRef) => ({
+        ...prevRef,
+        outputVariables: prevRef.outputVariables ? [...prevRef.outputVariables, selectedOutputVariable] : [selectedOutputVariable]
+      }))
     }
     handleCloseOutputVariableBox();
   };
@@ -209,25 +216,22 @@ export default function AddRule(props) {
       updatedActions[currentActionIndex] = selectedAction;
       setReference({ ...reference, actions: updatedActions });
     } else {
-      setReference({ ...reference, actions: [...reference.actions, selectedAction] });
+      setReference((prevRef) => ({
+        ...prevRef,
+        actions: prevRef.actions ? [...prevRef.actions, selectedAction] : [selectedAction]
+      }))
     }
     setActionPopupOpen(false);
     setParams(false)
   };
 
-  const removeInputVariable = (key) => {
-    setReference((prevReference) => {
-      const updatedInputVariables = { ...prevReference.inputVariables };
-      delete updatedInputVariables[key];
-      return { ...prevReference, inputVariables: updatedInputVariables };
-    });
-  };
-
+  console.log(stepType)
+  console.log(fileData)
 
   const removeItem = (arrayName, index) => {
-    setReference((prevSteps) => {
-      const updatedArray = prevSteps[arrayName].filter((_, i) => i !== index);
-      return { ...prevSteps, [arrayName]: updatedArray };
+    setReference((prevRef) => {
+      const updatedArray = prevRef[arrayName].filter((_, i) => i !== index);
+      return { ...prevRef, [arrayName]: updatedArray };
     });
   };
 
@@ -321,12 +325,9 @@ const generateJson = async () => {
             onChange={handleRefTypeChange}
             fullWidth
           >
-            <MenuItem key="UI" value="UI">UI</MenuItem>
-            <MenuItem key="API" value="API">API</MenuItem>
-            <MenuItem key="Kafka" value="Kafka">UI</MenuItem>
-            <MenuItem key="Mongo" value="Mongo">API</MenuItem>
-            <MenuItem key="Sql" value="Sql">UI</MenuItem>
-            
+            {STEP_TYPE_OPTIONS.map((option) => (
+              <MenuItem key={option} value={option}> {option} </MenuItem>
+            ))}
           </TextField>
         </Grid>
         <HeaderDivider
@@ -338,13 +339,13 @@ const generateJson = async () => {
         />
         <Grid container direction="row" style={{ paddingLeft: '2%', paddingBottom: '20px', marginTop: '15px' }}>
           <Grid item xs={12}>
-          {Object.keys(reference.inputVariables).length === 0 ? (
+          {reference?.inputVariables && Object.keys(reference.inputVariables).length > 0 ? (
             <Button
               variant="contained"
               color="primary"
               onClick={handleOpenInputVariablePopup}
             >
-              Add Input Variables
+              Edit Input Variables
             </Button>
           ) : (
             <Button
@@ -352,7 +353,7 @@ const generateJson = async () => {
               color="primary"
               onClick={handleOpenInputVariablePopup}
             >
-              Edit Input Variables
+              Add Input Variables
             </Button>
           )}
           </Grid>
@@ -408,6 +409,7 @@ const generateJson = async () => {
               Add Assertion
             </Button>
             <AssertionBoxPopup
+              stepType={stepType}
               open={assertionPopupOpen}
               handleClose={handleCloseAssertionBox}
               onSubmit={handleSaveAssertion}
@@ -420,9 +422,8 @@ const generateJson = async () => {
 
 
       {/* Actions Grid  */}
-      
-      {/* {jsonFileContent.actions && jsonFileContent.actions.length > 0 && ( */}
-      <Grid className='actions-grid' container direction="row" style={{ paddingBottom: '2%' }}>
+
+      <Grid className='actions-grid' container direction="row" style={{ paddingBottom: '5px' }}>
         <HeaderDivider
           title={
             <div style={{ display: 'flex' }}>
@@ -432,24 +433,27 @@ const generateJson = async () => {
         />
         <Grid container direction="row" style={{ paddingLeft: '2%', paddingBottom: '20px' }}>
           <ul className='listItem'>
-          {reference.actions.map((action, index) => (
-          <li key={index} className={classes.actionItem}>
-            <span className={classes.actionName}>{`Action ${index + 1} --- ${Object.keys(action)[0]}`}</span>
-            <div className='stepActions'>
-              <Tooltip title="Edit">
-                <IconButton onClick={() => handleEditButtonClick(index)}>
-                  <EditIcon />
-                </IconButton>
-              </Tooltip>
-              <Tooltip title="Delete">
-                <IconButton onClick={() => removeItem('actions', index)}>
-                  <DeleteIcon />
-                </IconButton>
-              </Tooltip>
-            </div>
-          </li>
-
-        ))}
+            {reference.actions.map((action, index) => (
+              <li key={index} className="actionItem">
+                <span className="actionName">{`Action ${index + 1} --- ${Object.keys(action)[0]}`}</span>
+                <div className='stepActions'>
+                  <Tooltip title="Edit">
+                    <IconButton
+                      onClick={() => handleEditButtonClick(index)}
+                    >
+                      <EditIcon />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title="Delete">
+                    <IconButton
+                      onClick={() => removeItem('actions', index)}
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </Tooltip>
+                </div>
+              </li>
+            ))}
           </ul>
           <Button
             variant="contained" color="primary" className="button"
@@ -469,10 +473,8 @@ const generateJson = async () => {
         />
       </Grid>
 
-       {/* )} */}  
+      {/* Output Variables Grid */}
 
-      {/* OutputVariables grid */}
-      {/* {jsonFileContent.outputVariables && jsonFileContent.outputVariables.length > 0 && ( */}
       <Grid container style={{ marginBottom: '20px' }}>
         <HeaderDivider
           title={
@@ -482,48 +484,44 @@ const generateJson = async () => {
           }
         />
         <Grid container direction="row" style={{ paddingLeft: '2%', paddingBottom: '20px' }}>
-              <ul className="listItem">
-                {Array.isArray(reference?.outputVariables) &&
-                  reference?.outputVariables.map((outputVariable, index) => (
-                    <li key={index} className="stepItem">
-                      <span className="stepName">
-                        {`outputVariable ${index + 1} --- ${
-                          Array.isArray(outputVariable.key)
-                            ? outputVariable.key.join(', ')
-                            : outputVariable.key
-                        }`}
-                      </span>
-                      <div className="stepReferences">
-                        <Tooltip title="Edit">
-                          <IconButton onClick={() => handleOutputVariableEditButtonClick(index)}>
-                            <EditIcon />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Delete">
-                          <IconButton onClick={() => removeItem('outputVariables', index)}>
-                            <DeleteIcon />
-                          </IconButton>
-                        </Tooltip>
-                      </div>
-                    </li>
-                  ))}
-              </ul>
-              <Button
-                variant="contained"
-                color="primary"
-                className="add-step-button"
-                onClick={() => setOutputVariablePopupOpen(true)}
-              >
-                Add Output Variables
-              </Button>
-              <OutputVariablePopup
-                open={outputVariablePopupOpen}
-                handleClose={handleCloseOutputVariableBox}
-                onSubmit={handleSaveOutputVariable}
-                initialData={isOutputVariableEdit ? reference.outputVariables[currentOutputVariableIndex] : null}
-                isEdit={isOutputVariableEdit}
-              />
-            </Grid>
+          <ul className='listItem'>
+            {Array.isArray(reference?.outputVariables) && reference?.outputVariables.map((outputVariable, index) => (
+              <li key={index} className="stepItem">
+                <span className="stepName">{`outputVariable ${index + 1} --- ${outputVariable.type}`}</span>
+                <div className='stepReferences'>
+                  <Tooltip title="Edit">
+                    <IconButton
+                      onClick={() => handleOutputVariableEditButtonClick(index)}
+                    >
+                      <EditIcon />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title="Delete">
+                    <IconButton
+                      onClick={() => removeItem('outputVariables', index)}
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </Tooltip>
+                </div>
+              </li>
+            ))}
+          </ul>
+          <Button
+            variant="contained" color="primary" className="add-step-button"
+            onClick={() => setOutputVariablePopupOpen(true)}
+          >
+            Add Output_Variable
+          </Button>
+          <OutputVariablePopup
+            stepType={stepType}
+            open={outputVariablePopupOpen}
+            handleClose={handleCloseOutputVariableBox}
+            onSubmit={handleSaveOutputVariable}
+            initialData={isOutputVariableEdit ? reference.outputVariables[currentOutputVariableIndex] : null}
+            isEdit={isOutputVariableEdit}
+          />
+        </Grid>
       </Grid>
       {/* )} */}
 

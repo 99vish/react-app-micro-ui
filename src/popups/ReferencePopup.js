@@ -57,12 +57,12 @@ const ReferencePopup = ({ open, handleClose, onSubmit, initialData, isEdit }) =>
 
   const classes = useStyles();
 
-  const [reference, setReference] = useState([{
-    jsonRef: "",
-    inputVariables: [],
-    OutputVariable: [],
-    assertions: []
-  }])
+  const [reference, setReference] = useState({
+    referenceType: "",
+    referenceUrl: "",
+    inputVariable: [],
+    outputVariable: []
+  })
 
 
   useEffect(() => {
@@ -70,14 +70,22 @@ const ReferencePopup = ({ open, handleClose, onSubmit, initialData, isEdit }) =>
       setReference(initialData);
     } else {
       setReference({
-        type: '',
-        key: [''],
-        operator: '',
-        value: ''
+        ...reference,
+        referenceType: '',
+        referenceUrl: ''
       });
     }
   }, [isEdit, initialData, open]);
 
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setReference((prevReference) => ({
+      ...prevReference,
+      [name]: value
+    }));
+  };
+  
   const handleRefTypeChange = (e) => {
     const newRefType = e.target.value;
     const oldRefValue = reference.jsonRef || reference.funcRef || "";
@@ -85,8 +93,8 @@ const ReferencePopup = ({ open, handleClose, onSubmit, initialData, isEdit }) =>
     setReference((prevReference) => {
       return {
         [newRefType]: oldRefValue,
-        inputVariables: prevReference.inputVariables,
-        outputVariables: prevReference.outputVariables,
+        inputVariable: prevReference.inputVariable,
+        outputVariable: prevReference.outputVariable,
         assertions: prevReference.assertions
       };
     });
@@ -122,7 +130,7 @@ const ReferencePopup = ({ open, handleClose, onSubmit, initialData, isEdit }) =>
           <Typography id="modal-title" className='heading'>
             {isEdit ? <h3>Edit References</h3> : <h3>Add References</h3>}
           </Typography>
-          <IconButton style={{ backgroundColor: 'red', color: 'white' }} onClick={handleClose}>
+          <IconButton className='closeButton' onClick={handleClose}>
             <CloseIcon />
           </IconButton>
         </Grid>
@@ -145,8 +153,8 @@ const ReferencePopup = ({ open, handleClose, onSubmit, initialData, isEdit }) =>
                 name="referenceType"
                 placeholder='Select Action Type'
                 style={{ width: '300px' }}
-                value={Object.keys(reference)[0]}
-                onChange={handleRefTypeChange}
+                value={reference.referenceType}
+                onChange={handleChange}
               >
                 <MenuItem key='funcRef' value='funcRef'> Functional Reference </MenuItem>
                 <MenuItem key='jsonRef' value='jsonRef'> JSON Reference </MenuItem>
@@ -163,8 +171,8 @@ const ReferencePopup = ({ open, handleClose, onSubmit, initialData, isEdit }) =>
                 type='text'
                 variant='outlined'
                 id="referenceFilePath"
-                onChange={handleFilePathChange}
-                value={reference.jsonRef || reference.funcRef}
+                onChange={handleChange}
+                value={reference.referenceUrl}
                 placeholder="Enter FilePath"
               />
             </Grid>
@@ -172,7 +180,7 @@ const ReferencePopup = ({ open, handleClose, onSubmit, initialData, isEdit }) =>
 
           <Grid item xs={12}>
             <Button type="submit" variant="contained" color="primary">
-              {isEdit ? "Update References" : "Save References"}
+              {isEdit ? "Update Reference" : "Save Reference"}
             </Button>
           </Grid>
         </form>
