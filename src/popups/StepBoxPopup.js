@@ -463,12 +463,7 @@ const StepBoxPopup = ({ open, handleClose, onSubmit, initialData, isEdit, allFil
                   </Button>
                 </Grid>
               </Grid> :
-              <Button
-                variant="contained" color="primary" className="button"
-                onClick={() => setReferenceBoxOpen(true)}
-              >
-                Add Reference
-              </Button>}
+              <></>}
           </Grid>
         
 

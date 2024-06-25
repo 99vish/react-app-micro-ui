@@ -70,7 +70,7 @@ export default function AddSteps(props) {
 
   console.log(JSON.parse(fileData.fileContent).beforeAll);
 
-  const { fileData, allFiles } = location.state;
+
   const [stepBoxOpen, setStepBoxOpen] = useState(false)
   const [currentStepIndex, setCurrentStepIndex] = useState(null);
   const [isEdit, setIsEdit] = useState(false);
@@ -138,7 +138,7 @@ export default function AddSteps(props) {
   };
 
   const handleHookDialogOpen = (hookType, hookIndex) => {
-    console.log(hookIndex);
+    console.log("it came here");
     setCurrentHookType(hookType);
     setCurrentHookIndex(hookIndex);
     setHookDialogOpen(true);
@@ -364,7 +364,7 @@ export default function AddSteps(props) {
                 </ul>
                 <Button
                   variant="contained" color="primary" className="add-hook-button"
-                  onClick={() => handleHookDialogOpen(hookType)}
+                  onClick={() => handleHookDialogOpen(hookType,null)}
                 >
                   Add Hook
                 </Button>
@@ -434,3 +434,5 @@ export default function AddSteps(props) {
     </Grid >
   )
 }
+
+

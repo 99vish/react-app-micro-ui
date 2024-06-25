@@ -6,6 +6,7 @@ import HeaderDivider from '../components/headerWithDivider';
 import { makeStyles } from '@material-ui/core';
 import AddIcon from '@mui/icons-material/Add';
 import CloseIcon from '@mui/icons-material/Close';
+import OutputVariablePopup from './OutputVariablePopup';
 
 const style = {
   position: 'absolute',
@@ -56,18 +57,19 @@ const ReferencePopup = ({ open, handleClose, onSubmit, initialData, isEdit }) =>
 
   const classes = useStyles();
 
-  const [references, setReferences] = useState({
-    type: '',
-    key: [''],
-    operator: '',
-    value: ''
-  })
+  const [reference, setReference] = useState([{
+    jsonRef: "",
+    inputVariables: [],
+    OutputVariable: [],
+    assertions: []
+  }])
+
 
   useEffect(() => {
     if (isEdit && initialData) {
-      setReferences(initialData);
+      setReference(initialData);
     } else {
-      setReferences({
+      setReference({
         type: '',
         key: [''],
         operator: '',
@@ -76,36 +78,35 @@ const ReferencePopup = ({ open, handleClose, onSubmit, initialData, isEdit }) =>
     }
   }, [isEdit, initialData, open]);
 
-  const handleChange = (e) => {
-    setReferences({ ...references, [e.target.name]: e.target.value });
-  };
+  const handleRefTypeChange = (e) => {
+    const newRefType = e.target.value;
+    const oldRefValue = reference.jsonRef || reference.funcRef || "";
 
-  const handleKeyChange = (index, event) => {
-    const newKeys = [...references.key];
-    newKeys[index] = event.target.value;
-    setReferences({
-      ...references,
-      key: newKeys,
-    });
-  };
-  const addKeyField = () => {
-    setReferences({
-      ...references,
-      key: [...references.key, ''],
+    setReference((prevReference) => {
+      return {
+        [newRefType]: oldRefValue,
+        inputVariables: prevReference.inputVariables,
+        outputVariables: prevReference.outputVariables,
+        assertions: prevReference.assertions
+      };
     });
   };
 
-  const deleteKeyField = (index) => {
-    const newKeys = references.key.filter((_, i) => i !== index);
-    setReferences({
-      ...references,
-      key: newKeys,
+  const handleFilePathChange = (e) => {
+    const { value } = e.target;
+    setReference((prevReference) => {
+      const refKey = prevReference.jsonRef !== undefined ? 'jsonRef' : 'funcRef';
+      return {
+        ...prevReference,
+        [refKey]: value
+      };
     });
   };
+
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit(references);
+    onSubmit(reference);
     handleClose();
   };
 
@@ -144,8 +145,8 @@ const ReferencePopup = ({ open, handleClose, onSubmit, initialData, isEdit }) =>
                 name="referenceType"
                 placeholder='Select Action Type'
                 style={{ width: '300px' }}
-                value={reference.referenceType}
-                onChange={handleReferenceChange}
+                value={Object.keys(reference)[0]}
+                onChange={handleRefTypeChange}
               >
                 <MenuItem key='funcRef' value='funcRef'> Functional Reference </MenuItem>
                 <MenuItem key='jsonRef' value='jsonRef'> JSON Reference </MenuItem>
@@ -158,12 +159,12 @@ const ReferencePopup = ({ open, handleClose, onSubmit, initialData, isEdit }) =>
               </div>
               <TextField
                 margin='dense'
-                name='referenceUrl'
+                name='referenceFilePath'
                 type='text'
                 variant='outlined'
-                id="referenceUrl"
-                onChange={handleReferenceChange}
-                value={reference.referenceUrl}
+                id="referenceFilePath"
+                onChange={handleFilePathChange}
+                value={reference.jsonRef || reference.funcRef}
                 placeholder="Enter FilePath"
               />
             </Grid>

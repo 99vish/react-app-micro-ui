@@ -3,7 +3,7 @@ import { Box, Button, TextField, Modal, Typography, Grid, IconButton, MenuItem }
 import DeleteIcon from '@mui/icons-material/Delete';
 import { STEP_TYPE_OPTIONS } from '../constants/constants';
 import HeaderDivider from '../components/headerWithDivider';
-import { makeStyles } from '@material-ui/core';
+import { Tooltip, makeStyles } from '@material-ui/core';
 import AddIcon from '@mui/icons-material/Add';
 
 const style = {
@@ -54,6 +54,8 @@ const useStyles = makeStyles((theme) => ({
 const OutputVariablePopup = ({ open, handleClose, onSubmit, initialData, isEdit }) => {
 
   const classes = useStyles();
+  console.log(initialData);
+  
 
   const [outputVariable, setOutputVariable] = useState({
     type: '',
@@ -74,6 +76,8 @@ const OutputVariablePopup = ({ open, handleClose, onSubmit, initialData, isEdit 
       });
     }
   }, [isEdit, initialData, open]);
+
+  console.log(outputVariable);
 
   const handleChange = (e) => {
     setOutputVariable({ ...outputVariable, [e.target.name]: e.target.value });
@@ -106,6 +110,14 @@ const OutputVariablePopup = ({ open, handleClose, onSubmit, initialData, isEdit 
     e.preventDefault();
     onSubmit(outputVariable);
     handleClose();
+  };
+
+  const toggleKeyType = () => {
+    setOutputVariable({
+      ...outputVariable,
+      key: outputVariable.isKeyArray ? '' : [''],
+      isKeyArray: !outputVariable.isKeyArray,
+    });
   };
 
   return (
@@ -163,38 +175,54 @@ const OutputVariablePopup = ({ open, handleClose, onSubmit, initialData, isEdit 
               />
             </Grid>
             <Grid item xs={12} md={6} ls={6} xl={6}>
-              <div>
+              <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
                 Key
-                {outputVariable.key.map((key, index) => (
-                  <Grid container alignItems="center" key={index}>
-                    <Grid item>
-                      <TextField
-                        margin='dense'
-                        name="key"
-                        placeholder="Enter Key"
-                        id={`outputKey-${index}`}
-                        type='text'
-                        onChange={e => handleKeyChange(index, e)}
-                        value={key}
-                        variant='outlined'
-                      />
+                <Tooltip title="Toggle between single and multiple keys">
+                  <IconButton onClick={toggleKeyType}>
+                    {outputVariable.isKeyArray ? <span>Switch to Single Key</span> : <span>Switch to Multiple Keys</span>}
+                  </IconButton>
+                </Tooltip>
+                {outputVariable.isKeyArray ? (
+                  outputVariable.key.map((key, index) => (
+                    <Grid container alignItems="center" key={index} spacing={1}>
+                      <Grid item xs={8}>
+                        <TextField
+                          margin='dense'
+                          name="key"
+                          placeholder="Enter Key"
+                          id={`outputKey-${index}`}
+                          type='text'
+                          onChange={(e) => handleKeyChange(index, e)}
+                          value={key}
+                          variant='outlined'
+                          fullWidth
+                        />
+                      </Grid>
+                      <Grid item>
+                        <IconButton onClick={addKeyField}>
+                          <AddIcon />
+                        </IconButton>
+                      </Grid>
+                      <Grid item>
+                        <IconButton onClick={() => deleteKeyField(index)}>
+                          <DeleteIcon />
+                        </IconButton>
+                      </Grid>
                     </Grid>
-                    {index === outputVariable.key.length - 1 && (
-                      <>
-                        <Grid item>
-                          <IconButton onClick={addKeyField}>
-                            <AddIcon />
-                          </IconButton>
-                        </Grid>
-                        <Grid item>
-                          <IconButton onClick={() => deleteKeyField(index)}>
-                            <DeleteIcon />
-                          </IconButton>
-                        </Grid>
-                      </>
-                    )}
-                  </Grid>
-                ))}
+                  ))
+                ) : (
+                  <TextField
+                    margin='dense'
+                    name="key"
+                    placeholder="Enter Key"
+                    id="outputKey"
+                    type='text'
+                    onChange={handleChange}
+                    value={outputVariable.key}
+                    variant='outlined'
+                    fullWidth
+                  />
+                )}
               </div>
             </Grid>
           </Grid>

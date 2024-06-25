@@ -42,7 +42,27 @@ const useStyles = makeStyles((theme) => ({
     backgroundColor: 'white',
     borderRadius: '2px',
     border: '1px solid #DDDBDA'
-  }
+  },
+  listItem: {
+    paddingLeft: '2%',
+    paddingBottom: '20px',
+    listStyle: 'none',
+  },
+  actionItem: {
+    display: 'flex',
+    alignItems: 'center',
+    marginBottom: '10px',
+    borderBottom: '1px solid #ccc',
+    paddingBottom: '20px',
+    paddingLeft: '2%'
+  },
+  actionName: {
+    flexGrow: 1,
+    marginRight: '10px',
+  },
+  button: {
+    marginTop: '10px',
+  },
 }));
 
 export default function AddRule(props) {
@@ -67,8 +87,8 @@ export default function AddRule(props) {
   const [refType, setRefType] = useState('UI')
   const [params, setParams] = useState(false)
 
-  const [steps, setSteps] = useState({
-    inputVariables: [],
+  const [reference, setReference] = useState({
+    inputVariables: {},
     assertion: [],
     outputVariables: [],
     actions: []
@@ -76,27 +96,28 @@ export default function AddRule(props) {
 
   useEffect(() => {
     if (fileData) {
-      setSteps(jsonFileContent);
+      setReference(jsonFileContent);
     }
   }, [fileData]);
 
-  console.log(fileData);
-
-  const handleSaveInputVaraible = (inputVariables) => {
-    console.log(inputVariables)
-    setSteps({ ...steps, inputVariables: inputVariables })
+  const handleSaveInputVariable = (inputVariable) => {
+    const { key, value } = inputVariable; // Assume inputVariable has `key` and `value` properties
+    setReference((prevReference) => ({
+      ...prevReference,
+      inputVariables: { ...inputVariable}
+    }));
     handleCloseInputVariablePopup();
   };
 
-  console.log(jsonFileContent);
-  console.log(jsonFileContent.actions)
+  console.log(reference.outputVariables);
+  
 
-  const handleInputVariableEditButtonClick = (index) => {
-    const inputVariableToEdit = steps.inputVariables[index];
-    if (inputVariableToEdit) {
-      setCurrentInputVariableIndex(index);
+  const handleInputVariableEditButtonClick = (key) => {
+    const valueToEdit = reference.inputVariables[key];
+    if (valueToEdit !== undefined) {
+      setCurrentInputVariableIndex(key); // Using key instead of index
       setIsInputVariableEdit(true);
-      setInputVariablePopupOpen(true)
+      setInputVariablePopupOpen(true);
     }
   };
 
@@ -106,21 +127,26 @@ export default function AddRule(props) {
     setCurrentInputVariableIndex(null);
   };
 
+  const handleOpenInputVariablePopup = () => {
+    setInputVariablePopupOpen(true);
+    setIsInputVariableEdit(Object.keys(reference.inputVariables).length > 0);
+  };
+
 
   const handleSaveAssertion = (selectedAssertion) => {
     if (isAssertionEdit) {
-      const updatedAssertions = [...steps.assertion];
+      const updatedAssertions = [...reference.assertion];
       updatedAssertions[currentAssertionIndex] = selectedAssertion;
-      setSteps({ ...steps, assertion: updatedAssertions });
+      setReference({ ...reference, assertion: updatedAssertions });
     } else {
-      setSteps({ ...steps, assertion: [...steps.assertion, selectedAssertion] });
+      setReference({ ...reference, assertion: [...reference.assertion, selectedAssertion] });
     }
     handleCloseAssertionBox();
   };
 
 
   const handleAssertionEditButtonClick = (index) => {
-    const assertionToEdit = steps.assertion[index];
+    const assertionToEdit = reference.assertion[index];
     if (assertionToEdit) {
       setCurrentAssertionIndex(index);
       setIsAssertionEdit(true);
@@ -136,17 +162,17 @@ export default function AddRule(props) {
 
   const handleSaveOutputVariable = (selectedOutputVariable) => {
     if (isOutputVariableEdit) {
-      const updatedOutputVariables = [...steps.outputVariables];
+      const updatedOutputVariables = [...reference.outputVariables];
       updatedOutputVariables[currentOutputVariableIndex] = selectedOutputVariable;
-      setSteps({ ...steps, outputVariables: updatedOutputVariables });
+      setReference({ ...reference, outputVariables: updatedOutputVariables });
     } else {
-      setSteps({ ...steps, outputVariables: [...steps.outputVariables, selectedOutputVariable] });
+      setReference({ ...reference, outputVariables: [...reference.outputVariables, selectedOutputVariable] });
     }
     handleCloseOutputVariableBox();
   };
 
   const handleOutputVariableEditButtonClick = (index) => {
-    const outputVariableToEdit = steps.outputVariables[index];
+    const outputVariableToEdit = reference.outputVariables[index];
     if (outputVariableToEdit) {
       setCurrentOutputVariableIndex(index);
       setIsOutputVariableEdit(true);
@@ -179,19 +205,27 @@ export default function AddRule(props) {
 
   const handleSaveAction = (selectedAction) => {
     if (isActionEdit) {
-      const updatedActions = [...steps.actions];
+      const updatedActions = [...reference.actions];
       updatedActions[currentActionIndex] = selectedAction;
-      setSteps({ ...steps, actions: updatedActions });
+      setReference({ ...reference, actions: updatedActions });
     } else {
-      setSteps({ ...steps, actions: [...steps.actions, selectedAction] });
+      setReference({ ...reference, actions: [...reference.actions, selectedAction] });
     }
     setActionPopupOpen(false);
     setParams(false)
   };
 
+  const removeInputVariable = (key) => {
+    setReference((prevReference) => {
+      const updatedInputVariables = { ...prevReference.inputVariables };
+      delete updatedInputVariables[key];
+      return { ...prevReference, inputVariables: updatedInputVariables };
+    });
+  };
+
 
   const removeItem = (arrayName, index) => {
-    setSteps((prevSteps) => {
+    setReference((prevSteps) => {
       const updatedArray = prevSteps[arrayName].filter((_, i) => i !== index);
       return { ...prevSteps, [arrayName]: updatedArray };
     });
@@ -202,33 +236,56 @@ export default function AddRule(props) {
     setRefType(value)
   }
 
-  console.log(jsonFileContent);
-  console.log(jsonFileContent.actions)
+//   const saveAsJson = async () => {
 
-  const generateJson = () => {
-    const json = JSON.stringify(steps, null, 2);
-    console.log(json);
+//     // Create a JSON string
+//   const jsonString = JSON.stringify(formData, null, 2);
 
-    // Create a blob from the JSON string
-    const blob = new Blob([json], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
+//   try {
+//     const handle = await window.showSaveFilePicker();
+//     const writableStream = await handle.createWritable();
+    
+//     // Write the JSON string to the writable stream
+//     await writableStream.write(jsonString);
+    
+//     // Close the writable stream
+//     await writableStream.close();
+//   } catch (err) {
+//       console.error('Error saving file:', err);
+//   }
 
-    // Create a link element and trigger the download
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'demo.json';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+// };
 
-    // Revoke the object URL
-    URL.revokeObjectURL(url);
+console.log(reference.actions);
+
+const generateJson = async () => {
+  const jsonString = JSON.stringify(reference, null, 2);
+
+  // Convert JSON string to a Blob
+  const blob = new Blob([jsonString], { type: 'application/json' });
+  
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  
+  // Set attributes for download dialog
+  link.setAttribute('download', `${fileData.fileName}`);
+  link.style.display = 'none';
+  
+  // Append the link to the body
+  document.body.appendChild(link);
+  
+  // Trigger the click event to open the save dialog
+  link.click();
+  
+  // Clean up
+  document.body.removeChild(link);
+  URL.revokeObjectURL(link.href);
   };
 
   return (
     <Grid container direction="row" className={classes.cardGrid}>
       <div style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-        <h5 className='heading'> Add Reference </h5>
+        <h5 className='heading'> Reference Information </h5>
         <Grid container direction="row-reverse" spacing={2} className={classes.stickToTop}>
           <Grid item style={{ marginleft: '2%' }}>
             <Button
@@ -250,10 +307,10 @@ export default function AddRule(props) {
       </div>
 
 
-      {/* Input Varaible Grid */}
+      {/* Input Variable Grid */}
 
-      {/* {jsonFileContent.assertion && jsonFileContent.assertion.length > 0 && ( */}
-      <Grid className='steps-grid' container direction="row" style={{ paddingBottom: '5px', paddingTop: '20px' }}>
+      {/* {jsonFileContent.inputVariables && jsonFileContent.inputVariables.length > 0 && ( */}
+      <Grid className='reference-grid' container direction="row" style={{ paddingBottom: '5px', paddingTop: '20px' }}>
         <Grid item xs={1} md={1}>
 
           <TextField
@@ -266,6 +323,10 @@ export default function AddRule(props) {
           >
             <MenuItem key="UI" value="UI">UI</MenuItem>
             <MenuItem key="API" value="API">API</MenuItem>
+            <MenuItem key="Kafka" value="Kafka">UI</MenuItem>
+            <MenuItem key="Mongo" value="Mongo">API</MenuItem>
+            <MenuItem key="Sql" value="Sql">UI</MenuItem>
+            
           </TextField>
         </Grid>
         <HeaderDivider
@@ -275,51 +336,40 @@ export default function AddRule(props) {
             </div>
           }
         />
-        <Grid container direction="row" style={{ paddingLeft: '2%', paddingBottom: '20px' }}>
-          <ul className='listItem'>
-            {Array.isArray(steps?.inputVariables) && steps?.inputVariables.map((inputVariable, index) => (
-              <li key={index} className="stepItem">
-                <span className="stepName">{`inputVariable ${index + 1} --- ${inputVariable.type}`}</span>
-                <div className='stepReferences'>
-                  <Tooltip title="Edit">
-                    <IconButton
-                      onClick={() => handleInputVariableEditButtonClick(index)}
-                    >
-                      <EditIcon />
-                    </IconButton>
-                  </Tooltip>
-                  <Tooltip title="Delete">
-                    <IconButton
-                      onClick={() => removeItem('inputVariables', index)}
-                    >
-                      <DeleteIcon />
-                    </IconButton>
-                  </Tooltip>
-                </div>
-              </li>
-            ))}
-          </ul>
-          <Button
-            variant="contained" color="primary" className="add-step-button"
-            onClick={() => setInputVariablePopupOpen(true)}
-          >
-            Add InputVariable
-          </Button>
+        <Grid container direction="row" style={{ paddingLeft: '2%', paddingBottom: '20px', marginTop: '15px' }}>
+          <Grid item xs={12}>
+          {Object.keys(reference.inputVariables).length === 0 ? (
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleOpenInputVariablePopup}
+            >
+              Add Input Variables
+            </Button>
+          ) : (
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleOpenInputVariablePopup}
+            >
+              Edit Input Variables
+            </Button>
+          )}
+          </Grid>
           <InputVariablePopup
             open={inputVariablePopupOpen}
             handleClose={handleCloseInputVariablePopup}
-            onSubmit={handleSaveInputVaraible}
-            initialData={isInputVariableEdit ? steps.inputVariables[currentInputVariableIndex] : null}
+            onSave={handleSaveInputVariable}
+            initialData={isInputVariableEdit ? reference?.inputVariables : null}
             isEdit={isInputVariableEdit}
           />
         </Grid>
       </Grid>
-      {/* )} */}
 
       {/* Assertions Grid */}
 
-      {jsonFileContent.assertion && jsonFileContent.assertion.length > 0 && (
-        <Grid className='steps-grid' container direction="row" style={{ paddingBottom: '20px', paddingTop: '20px' }}>
+      {/* {jsonFileContent.assertion && jsonFileContent.assertion.length > 0 && ( */}
+        <Grid className='reference-grid' container direction="row" style={{ paddingBottom: '20px', paddingTop: '20px' }}>
           <HeaderDivider
             title={
               <div style={{ display: 'flex' }}>
@@ -329,7 +379,7 @@ export default function AddRule(props) {
           />
           <Grid container direction="row" style={{ paddingLeft: '2%', paddingBottom: '20px' }}>
             <ul className='listItem'>
-              {steps.assertion.map((assertion, index) => (
+              {reference?.assertion && reference.assertion.map((assertion, index) => (
                 <li key={index} className="stepItem">
                   <span className="stepName">{`assertion ${index + 1} --- ${assertion.type}`}</span>
                   <div className='stepReferences'>
@@ -361,16 +411,17 @@ export default function AddRule(props) {
               open={assertionPopupOpen}
               handleClose={handleCloseAssertionBox}
               onSubmit={handleSaveAssertion}
-              initialData={isAssertionEdit ? steps.assertion[currentAssertionIndex] : null}
+              initialData={isAssertionEdit ? reference.assertion[currentAssertionIndex] : null}
               isEdit={isAssertionEdit}
             />
           </Grid>
 
         </Grid>
-      )}
+
 
       {/* Actions Grid  */}
       
+      {/* {jsonFileContent.actions && jsonFileContent.actions.length > 0 && ( */}
       <Grid className='actions-grid' container direction="row" style={{ paddingBottom: '2%' }}>
         <HeaderDivider
           title={
@@ -381,27 +432,24 @@ export default function AddRule(props) {
         />
         <Grid container direction="row" style={{ paddingLeft: '2%', paddingBottom: '20px' }}>
           <ul className='listItem'>
-            {steps.actions.map((action, index) => (
-              <li key={index} className="actionItem">
-                <span className="actionName">{`Action ${index + 1} --- ${action.actionType}`}</span>
-                <div className='stepActions'>
-                  <Tooltip title="Edit">
-                    <IconButton
-                      onClick={() => handleEditButtonClick(index)}
-                    >
-                      <EditIcon />
-                    </IconButton>
-                  </Tooltip>
-                  <Tooltip title="Delete">
-                    <IconButton
-                      onClick={() => removeItem('actions', index)}
-                    >
-                      <DeleteIcon />
-                    </IconButton>
-                  </Tooltip>
-                </div>
-              </li>
-            ))}
+          {reference.actions.map((action, index) => (
+          <li key={index} className={classes.actionItem}>
+            <span className={classes.actionName}>{`Action ${index + 1} --- ${Object.keys(action)[0]}`}</span>
+            <div className='stepActions'>
+              <Tooltip title="Edit">
+                <IconButton onClick={() => handleEditButtonClick(index)}>
+                  <EditIcon />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title="Delete">
+                <IconButton onClick={() => removeItem('actions', index)}>
+                  <DeleteIcon />
+                </IconButton>
+              </Tooltip>
+            </div>
+          </li>
+
+        ))}
           </ul>
           <Button
             variant="contained" color="primary" className="button"
@@ -415,11 +463,16 @@ export default function AddRule(props) {
           openParams={params}
           handleClose={handleClosePopup}
           onSubmit={handleSaveAction}
-          initialData={isActionEdit ? steps.actions[currentActionIndex] : null}
+          initialData={isActionEdit ? reference.actions[currentActionIndex] : null}
           isEdit={isActionEdit}
           actionsData={jsonFileContent.actions}
         />
       </Grid>
+
+       {/* )} */}  
+
+      {/* OutputVariables grid */}
+      {/* {jsonFileContent.outputVariables && jsonFileContent.outputVariables.length > 0 && ( */}
       <Grid container style={{ marginBottom: '20px' }}>
         <HeaderDivider
           title={
@@ -429,44 +482,50 @@ export default function AddRule(props) {
           }
         />
         <Grid container direction="row" style={{ paddingLeft: '2%', paddingBottom: '20px' }}>
-          <ul className='listItem'>
-            {Array.isArray(steps?.inputVariables) && steps?.outputVariables.map((outputVariable, index) => (
-              <li key={index} className="stepItem">
-                <span className="stepName">{`outputVariable ${index + 1} --- ${outputVariable.type}`}</span>
-                <div className='stepReferences'>
-                  <Tooltip title="Edit">
-                    <IconButton
-                      onClick={() => handleOutputVariableEditButtonClick(index)}
-                    >
-                      <EditIcon />
-                    </IconButton>
-                  </Tooltip>
-                  <Tooltip title="Delete">
-                    <IconButton
-                      onClick={() => removeItem('outputVariables', index)}
-                    >
-                      <DeleteIcon />
-                    </IconButton>
-                  </Tooltip>
-                </div>
-              </li>
-            ))}
-          </ul>
-          <Button
-            variant="contained" color="primary" className="add-step-button"
-            onClick={() => setOutputVariablePopupOpen(true)}
-          >
-            Add Output_Variable
-          </Button>
-          <OutputVariablePopup
-            open={outputVariablePopupOpen}
-            handleClose={handleCloseOutputVariableBox}
-            onSubmit={handleSaveOutputVariable}
-            initialData={isOutputVariableEdit ? steps.outputVariables[currentOutputVariableIndex] : null}
-            isEdit={isOutputVariableEdit}
-          />
-        </Grid>
+              <ul className="listItem">
+                {Array.isArray(reference?.outputVariables) &&
+                  reference?.outputVariables.map((outputVariable, index) => (
+                    <li key={index} className="stepItem">
+                      <span className="stepName">
+                        {`outputVariable ${index + 1} --- ${
+                          Array.isArray(outputVariable.key)
+                            ? outputVariable.key.join(', ')
+                            : outputVariable.key
+                        }`}
+                      </span>
+                      <div className="stepReferences">
+                        <Tooltip title="Edit">
+                          <IconButton onClick={() => handleOutputVariableEditButtonClick(index)}>
+                            <EditIcon />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Delete">
+                          <IconButton onClick={() => removeItem('outputVariables', index)}>
+                            <DeleteIcon />
+                          </IconButton>
+                        </Tooltip>
+                      </div>
+                    </li>
+                  ))}
+              </ul>
+              <Button
+                variant="contained"
+                color="primary"
+                className="add-step-button"
+                onClick={() => setOutputVariablePopupOpen(true)}
+              >
+                Add Output Variables
+              </Button>
+              <OutputVariablePopup
+                open={outputVariablePopupOpen}
+                handleClose={handleCloseOutputVariableBox}
+                onSubmit={handleSaveOutputVariable}
+                initialData={isOutputVariableEdit ? reference.outputVariables[currentOutputVariableIndex] : null}
+                isEdit={isOutputVariableEdit}
+              />
+            </Grid>
       </Grid>
+      {/* )} */}
 
     </Grid>
   )

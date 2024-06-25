@@ -1,137 +1,130 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Button, TextField, Modal, Typography, Grid, IconButton, Tooltip, MenuItem } from '@mui/material';
-import Autocomplete from '@mui/lab/Autocomplete';
-import AddIcon from '@mui/icons-material/Add';
+import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, makeStyles, Tooltip, IconButton, Typography } from '@material-ui/core';
 import DeleteIcon from '@mui/icons-material/Delete';
-import CloseIcon from '@mui/icons-material/Close'
-import { ALL_OBJECTS } from '../constants/allObjects';
+import AddIcon from '@mui/icons-material/Add';
 
-const style = {
-  position: 'absolute',
-  top: '50%',
-  left: '50%',
-  transform: 'translate(-50%, -50%)',
-  width: 600,
-  bgcolor: 'background.paper',
-  border: '2px solid #000',
-  boxShadow: 24,
-  p: 4,
-};
 
-const InputVariablePopup = ({ open, handleClose, onSubmit, initialData, isEdit }) => {
-  const [formData, setFormData] = useState({
-    objects: [{}],
-  });
+const useStyles = makeStyles((theme) => ({
+  keyValueRow: {
+    display: 'flex',
+    alignItems: 'center',
+    marginBottom: '10px'
+  },
+  keyField: {
+    marginRight: '10px',
+    flex: 1
+  },
+  valueField: {
+    flex: 1
+  },
+  addKeyValueButton: {
+    marginTop: '10px'
+  },
+  dialogContent: {
+    backgroundColor: '#fff', // Set your desired background color for the dialog content
+  },
+  backdrop: {
+    backgroundColor: 'rgba(0, 0, 0, 0.25)', // Set your desired background color and opacity
+  }
+}));
 
-  const [inputVariables, setInputVariables] = useState([{}]);
+const InputVariablePopup = ({ open, handleClose, onSave, initialData, isEdit }) => {
+  const classes = useStyles();
+  const [keyValues, setKeyValues] = useState([{ key: '', value: '' }]);
 
-  const handleSubmit = (e) => {
-    console.log('Submitted Input Variables:', inputVariables);
-    e.preventDefault()
-    onSubmit(inputVariables)
-    handleClose()
+  useEffect(() => {
+    // Set the initial keyValues if initialData is provided and not empty
+    if (initialData && Object.keys(initialData).length > 0) {
+      const initialKeyValues = Object.keys(initialData).map(key => ({
+        key,
+        value: initialData[key]
+      }));
+      setKeyValues(initialKeyValues);
+    } else {
+      // If initialData is null or empty, reset to default empty key-value pair
+      setKeyValues([{ key: '', value: '' }]);
+    }
+  }, [initialData]);
+
+  const handleAddKeyValue = () => {
+    setKeyValues([...keyValues, { key: '', value: '' }]);
   };
-  const handleAddParam = () => {
-    setInputVariables((prevInputVar) => {
-      return [...prevInputVar, {}]
-    })
-  }
-  const handleKeyChange = (index, e) => {
-    const { value } = e.target;
-    setInputVariables((prevInputVar) => {
-      let objAtIndex = prevInputVar[index];
-      let prevKeyAtIndex = [Object.keys(objAtIndex)[0]]
-      objAtIndex = { [value]: objAtIndex[prevKeyAtIndex] ? objAtIndex[prevKeyAtIndex] : "" }
-      prevInputVar[index] = objAtIndex
-      return prevInputVar
-    })
-  }
-  const handleValueChange = (index, e) => {
-    const { name, value } = e.target;
-    setInputVariables((prevInputVar) => {
-      let objAtIndex = prevInputVar[index];
-      let key = Object.keys(objAtIndex)[0];
-      objAtIndex = { [key]: value }
-      prevInputVar[index] = objAtIndex
-      return prevInputVar;
-    })
-  }
 
-  const handleRemoveParam = (index) => {
-    const updatedInputVariables = inputVariables.filter((_, i) => i !== index);
-    setInputVariables(updatedInputVariables);
-  }
+  const handleRemoveKeyValue = (index) => {
+    const updatedKeyValues = keyValues.filter((_, i) => i !== index);
+    setKeyValues(updatedKeyValues);
+  };
+
+  const handleKeyValueChange = (index, field, value) => {
+    const updatedValue = value.includes(',') ? value.split(',').map(item => item.trim()) : value;
+    const updatedKeyValues = keyValues.map((kv, i) => (
+      i === index ? { ...kv, [field]: updatedValue } : kv
+    ));
+    setKeyValues(updatedKeyValues);
+  };
+  
+
+  const handleSave = () => {
+    const updatedKeyValuePairs = keyValues.reduce((acc, { key, value }) => {
+      if (key) acc[key] = value;
+      return acc;
+    }, {});
+    onSave(updatedKeyValuePairs);
+    handleClose();
+  };
 
   return (
-    <Modal
-      open={open}
-      onClose={handleClose}
-      aria-labelledby="modal-title"
-      aria-describedby="modal-description"
-    >
-      <Box sx={style}>
-        <Grid container justifyContent="space-between" alignItems="center">
-          <Typography id="modal-title" variant="h6" component="h2">
-            {isEdit ? "Edit InputVariable" : "Add InputVariable"}
-          </Typography>
-          <IconButton style={{backgroundColor: 'red', color: 'white'}} onClick={handleClose}>
-            <CloseIcon />
-          </IconButton>
-        </Grid>
-        <form onSubmit={handleSubmit}>
-          <Grid container direction="row" spacing={2}>
-            {inputVariables.map((param, index) => (
-              <>
-                <Grid item xs={10} md={4} ls={4} xl={4}>
-                  <TextField
-                    margin='dense'
-                    placeholder={`Enter Key`}
-                    id={`param-${index}-key`}
-                    type='text'
-                    onChange={(e) => handleKeyChange(index, e)}
-                    value={Object.keys(inputVariables[index])[0]}
-                    variant='outlined'
-                    fullWidth
-                  />
-                </Grid>
-                <Grid item xs={10} md={6} ls={6} xl={6}>
-                  <TextField
-                    margin='dense'
-                    placeholder={`Enter Value`}
-                    id={`param-${index}-value`}
-                    type='text'
-                    onChange={(e) => handleValueChange(index, e)}
-                    value={Object.values(inputVariables[index])[0]}
-                    variant='outlined'
-                    fullWidth
-                  />
-                </Grid>
-                <Grid item xs={2}>
-                  {
-                    (Array.isArray(inputVariables) && index === inputVariables.length - 1)
-                    && <IconButton onClick={() => handleAddParam()}>
-                      <AddIcon />
-                    </IconButton>
-                  }
-
-                  {inputVariables.length > 1 && (
-                    <IconButton onClick={() => handleRemoveParam(index)}>
-                      <DeleteIcon />
-                    </IconButton>
-                  )}
-                </Grid>
-              </>
-            ))}
-            <Grid item xs={12}>
-              <Button type="submit" variant="contained" color="primary">
-                {isEdit ? "Update Action" : "Save Action"}
-              </Button>
-            </Grid>
-          </Grid>
-        </form>
-      </Box>
-    </Modal>
+    <Dialog open={open} onClose={handleClose}>
+      <DialogTitle>{isEdit ? 'Edit Input Variables' : 'Add Input Variables'}</DialogTitle>
+      <DialogContent className={classes.dialogContent}>
+      <Typography variant="body2" color="textSecondary" gutterBottom>
+          *If you want to add values in the form of arrays, please use comma-separated values.
+      </Typography>
+      {keyValues.map((kv, index) => (
+          <div key={index} className={classes.keyValueRow}>
+            <TextField
+              margin='dense'
+              label="Key"
+              variant='outlined'
+              className={classes.keyField}
+              value={kv.key}
+              onChange={(e) => handleKeyValueChange(index, 'key', e.target.value)}
+            />
+            <TextField
+              margin='dense'
+              label="Value"
+              variant='outlined'
+              className={classes.valueField}
+              value={kv.value}
+              onChange={(e) => handleKeyValueChange(index, 'value', e.target.value)}
+            />
+            <Tooltip title="Remove">
+              <IconButton onClick={() => handleRemoveKeyValue(index)}>
+                <DeleteIcon />
+              </IconButton>
+            </Tooltip>
+          </div>
+        ))}
+        <Button
+          variant="contained"
+          color="primary"
+          className={classes.addKeyValueButton}
+          onClick={handleAddKeyValue}
+        >
+          Add Key-Value Pair
+          <AddIcon />
+        </Button>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={handleClose} color="primary">
+          Cancel
+        </Button>
+        <Button onClick={handleSave} color="primary">
+          Save
+        </Button>
+      </DialogActions>
+    </Dialog>
   );
-}
+};
 
 export default InputVariablePopup;
