@@ -65,10 +65,10 @@ export default function AddSteps(props) {
   // const context = useContext(AppContext);
   const classes = useStyles();
   const location = useLocation();
-  
-  const {fileData, allFiles} = location.state
-  
-  
+
+  const { fileData, allFiles } = location.state;
+
+
   const [stepBoxOpen, setStepBoxOpen] = useState(false)
   const [currentStepIndex, setCurrentStepIndex] = useState(null);
   const [isEdit, setIsEdit] = useState(false);
@@ -142,8 +142,6 @@ export default function AddSteps(props) {
     setHookDialogOpen(true);
   };
 
-  console.log(currentHookIndex);
-
   const handleHookDialogClose = () => {
     setHookDialogOpen(false);
     setCurrentHookIndex(null);
@@ -167,18 +165,11 @@ export default function AddSteps(props) {
   };
 
   const saveAsJson = async () => {
-
-      // Create a JSON string
     const jsonString = JSON.stringify(formData, null, 2);
-
     try {
       const handle = await window.showSaveFilePicker();
       const writableStream = await handle.createWritable();
-      
-      // Write the JSON string to the writable stream
       await writableStream.write(jsonString);
-      
-      // Close the writable stream
       await writableStream.close();
     } catch (err) {
         console.error('Error saving file:', err);
@@ -188,27 +179,16 @@ export default function AddSteps(props) {
 
   const saveJson = async () => {
     const jsonString = JSON.stringify(formData, null, 2);
-
-    // Convert JSON string to a Blob
-    const blob = new Blob([jsonString], { type: 'application/json' });
-    
+    const blob = new Blob([jsonString], { type: 'application/json' });    
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    
-    // Set attributes for download dialog
     link.setAttribute('download', `${fileData.fileName}`);
     link.style.display = 'none';
-    
-    // Append the link to the body
     document.body.appendChild(link);
-    
-    // Trigger the click event to open the save dialog
     link.click();
-    
-    // Clean up
     document.body.removeChild(link);
     URL.revokeObjectURL(link.href);
-    };
+  };
 
   return (
     <Grid container style={{ backgroundColor: "#fff" }}>

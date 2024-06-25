@@ -31,6 +31,7 @@ const useStyles = makeStyles((theme) => ({
 const InputVariablePopup = ({ open, handleClose, onSave, initialData, isEdit }) => {
   const classes = useStyles();
   const [keyValues, setKeyValues] = useState([{ key: '', value: '' }]);
+  
 
   useEffect(() => {
     // Set the initial keyValues if initialData is provided and not empty
