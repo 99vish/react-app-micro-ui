@@ -361,7 +361,6 @@ const saveJson = async () => {
               onClick={handleOpenInputVariablePopup}
             >
               Add Input Variables
-              Add Input Variables
             </Button>
           )}
           </Grid>

@@ -167,7 +167,7 @@ const ReferencePopup = ({ open, handleClose, onSubmit, initialData, isEdit }) =>
               </div>
               <TextField
                 margin='dense'
-                name='referenceFilePath'
+                name='referenceUrl'
                 type='text'
                 variant='outlined'
                 id="referenceFilePath"
@@ -179,7 +179,7 @@ const ReferencePopup = ({ open, handleClose, onSubmit, initialData, isEdit }) =>
           </Grid>
 
           <Grid item xs={12}>
-            <Button type="submit" variant="contained" color="primary">
+            <Button type="submit" onClick={handleSubmit} variant="contained" color="primary">
               {isEdit ? "Update Reference" : "Save Reference"}
             </Button>
           </Grid>

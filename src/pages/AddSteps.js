@@ -371,7 +371,7 @@ export default function AddSteps(props) {
             <ul className='listItem'>
               {formData.steps.map((step, index) => (
                 <li key={index} className="stepItem">
-                  <span className="stepName">{`${step.stepName} - (${step.stepType})` || `Step ${index + 1}`}</span>
+                  <span className="stepName">{`${index+1}. ${step.stepName} - (${step.stepType})` || `Step ${index + 1}`}</span>
                   <div className='stepReferences'>
                     <Tooltip title="Edit">
                       <IconButton
