@@ -3,8 +3,9 @@ import { Box, Button, TextField, Modal, Typography, Grid, IconButton, MenuItem }
 import DeleteIcon from '@mui/icons-material/Delete';
 import { STEP_TYPE_OPTIONS } from '../constants/constants';
 import HeaderDivider from '../components/headerWithDivider';
-import { Tooltip, makeStyles } from '@material-ui/core';
+import { makeStyles } from '@material-ui/core';
 import AddIcon from '@mui/icons-material/Add';
+import CloseIcon from '@mui/icons-material/Close';
 
 const style = {
   position: 'absolute',
@@ -51,17 +52,15 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-const OutputVariablePopup = ({ open, handleClose, onSubmit, initialData, isEdit }) => {
+const OutputVariablePopup = ({ stepType, open, handleClose, onSubmit, initialData, isEdit }) => {
 
   const classes = useStyles();
-  console.log(initialData);
-  
 
   const [outputVariable, setOutputVariable] = useState({
-    type: '',
+    type: stepType || '',
     key: [''],
     operator: '',
-    value: ''
+    variable: ''
   })
 
   useEffect(() => {
@@ -69,15 +68,13 @@ const OutputVariablePopup = ({ open, handleClose, onSubmit, initialData, isEdit 
       setOutputVariable(initialData);
     } else {
       setOutputVariable({
-        type: '',
+        type: stepType || '',
         key: [''],
         operator: '',
         value: ''
       });
     }
   }, [isEdit, initialData, open]);
-
-  console.log(outputVariable);
 
   const handleChange = (e) => {
     setOutputVariable({ ...outputVariable, [e.target.name]: e.target.value });
@@ -112,14 +109,6 @@ const OutputVariablePopup = ({ open, handleClose, onSubmit, initialData, isEdit 
     handleClose();
   };
 
-  const toggleKeyType = () => {
-    setOutputVariable({
-      ...outputVariable,
-      key: outputVariable.isKeyArray ? '' : [''],
-      isKeyArray: !outputVariable.isKeyArray,
-    });
-  };
-
   return (
     <Modal
       open={open}
@@ -128,9 +117,14 @@ const OutputVariablePopup = ({ open, handleClose, onSubmit, initialData, isEdit 
       aria-describedby="modal-description"
     >
       <Box sx={style}>
-        <Typography id="modal-title" className='heading'>
-          {isEdit ? <h3>Edit Output Variable</h3> : <h3>Add Output Variable</h3>}
-        </Typography>
+      <Grid container justifyContent="space-between" alignItems="center">
+          <Typography id="modal-title" className='heading'>
+            {isEdit ? <h3>Edit outputVariable</h3> : <h3>Add Output Variable</h3>}
+          </Typography>
+          <IconButton className='closeButton' style={{  color: 'black' }} onClick={handleClose}>
+            <CloseIcon />
+          </IconButton>
+        </Grid>
         <HeaderDivider
           title={
             <div style={{ display: 'flex' }}>
@@ -141,27 +135,41 @@ const OutputVariablePopup = ({ open, handleClose, onSubmit, initialData, isEdit 
         <form onSubmit={handleSubmit}>
           <Grid container direction="row" spacing={2} style={{ paddingLeft: '2%', paddingBottom: '20px' }}>
             <Grid item xs={12} md={6} ls={6} xl={6}>
-              <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
-                Output Variable Type
-                <span style={{ color: 'red' }}>*</span>
-              </div>
-              <TextField
-                select
-                name="type"
-                placeholder='Select Output Variable Type'
-                style={{ width: '300px' }}
-                value={outputVariable.type}
-                onChange={handleChange}
-              >
-                {STEP_TYPE_OPTIONS.map((option) => (
-                  <MenuItem key={option} value={option}> {option} </MenuItem>
+              <div>
+                Key
+                {outputVariable.key.map((key, index) => (
+                  <Grid container alignItems="center" key={index}>
+                    <Grid item>
+                      <TextField
+                        margin='dense'
+                        name="key"
+                        placeholder="Enter Key"
+                        id={`outputKey-${index}`}
+                        type='text'
+                        onChange={e => handleKeyChange(index, e)}
+                        value={key}
+                        variant='outlined'
+                      />
+                    </Grid>
+                    <Grid item>
+                      <IconButton onClick={() => deleteKeyField(index)}>
+                        <DeleteIcon />
+                      </IconButton>
+                    </Grid>
+                    {index === outputVariable.key.length - 1 && (
+                      <Grid item>
+                        <IconButton onClick={addKeyField}>
+                          <AddIcon />
+                        </IconButton>
+                      </Grid>
+                    )}
+                  </Grid>
                 ))}
-              </TextField>
+              </div>
             </Grid>
             <Grid item xs={12} md={6} ls={6} xl={6}>
               <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
-                Value
-                <span style={{ color: 'red' }}>*</span>
+                Variable
               </div>
               <TextField
                 margin='dense'
@@ -170,60 +178,9 @@ const OutputVariablePopup = ({ open, handleClose, onSubmit, initialData, isEdit 
                 id="outputVariableValue"
                 type='text'
                 onChange={handleChange}
-                value={outputVariable.value}
+                value={outputVariable.variable}
                 variant='outlined'
               />
-            </Grid>
-            <Grid item xs={12} md={6} ls={6} xl={6}>
-              <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
-                Key
-                <Tooltip title="Toggle between single and multiple keys">
-                  <IconButton onClick={toggleKeyType}>
-                    {outputVariable.isKeyArray ? <span>Switch to Single Key</span> : <span>Switch to Multiple Keys</span>}
-                  </IconButton>
-                </Tooltip>
-                {outputVariable.isKeyArray ? (
-                  outputVariable.key.map((key, index) => (
-                    <Grid container alignItems="center" key={index} spacing={1}>
-                      <Grid item xs={8}>
-                        <TextField
-                          margin='dense'
-                          name="key"
-                          placeholder="Enter Key"
-                          id={`outputKey-${index}`}
-                          type='text'
-                          onChange={(e) => handleKeyChange(index, e)}
-                          value={key}
-                          variant='outlined'
-                          fullWidth
-                        />
-                      </Grid>
-                      <Grid item>
-                        <IconButton onClick={addKeyField}>
-                          <AddIcon />
-                        </IconButton>
-                      </Grid>
-                      <Grid item>
-                        <IconButton onClick={() => deleteKeyField(index)}>
-                          <DeleteIcon />
-                        </IconButton>
-                      </Grid>
-                    </Grid>
-                  ))
-                ) : (
-                  <TextField
-                    margin='dense'
-                    name="key"
-                    placeholder="Enter Key"
-                    id="outputKey"
-                    type='text'
-                    onChange={handleChange}
-                    value={outputVariable.key}
-                    variant='outlined'
-                    fullWidth
-                  />
-                )}
-              </div>
             </Grid>
           </Grid>
 

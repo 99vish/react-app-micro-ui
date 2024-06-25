@@ -22,6 +22,7 @@ const ActionPopup = ({ open, params, handleClose, onSubmit, initialData, isEdit 
 
   const [action, setAction] = useState({})
   const [currentKey, setCurrentKey] = useState()
+  const [otherValues, setOtherValues] = useState(false)
   //const [initialKey, setInitialKey] = useState(Object.keys(initialData)[0])
   let initialValues = []
 
@@ -33,14 +34,17 @@ const ActionPopup = ({ open, params, handleClose, onSubmit, initialData, isEdit 
         console.log(initialValues)
         setCurrentKey(Object.keys(initialData)[0])
         console.log(Object.keys(initialData)[0])
+        setOtherValues(true)
       }
     } else {
       setAction({});
+      setOtherValues(false)
     }
   }, [isEdit, initialData, open]);
 
   const handleKeyChange = (e) => {
     const { value } = e.target;
+    if (value !== null || value !== "") setOtherValues(true)
     setAction((prevAction) => {
       let key = Object.keys(action)[0]
       let prevVal = prevAction[key]
@@ -61,25 +65,22 @@ const ActionPopup = ({ open, params, handleClose, onSubmit, initialData, isEdit 
     })
   }
 
-  const handleChange = (e) => {
-    const { value } = e.target
-    let key = Object.keys(action)[0]
-    setAction({ [key]: value })
-  }
-
   const handleAutocompleteChange = (event, newValue) => {
     let key = Object.keys(action)[0]
     setAction((prevAction) => {
       let values = prevAction[key]
       values[0] = newValue
-      let newObject = {[key]: values}
+      let newObject = { [key]: values }
       return newObject
     })
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit(action);
+    let key = Object.keys(action)[0]
+    let values = Object.values(action)[0].filter(item => item != null || item != "")
+    let finalAction = { [key]: values }
+    onSubmit(finalAction);
     handleClose();
   };
 
@@ -95,86 +96,183 @@ const ActionPopup = ({ open, params, handleClose, onSubmit, initialData, isEdit 
           <Typography id="modal-title" variant="h6" component="h2">
             {isEdit ? "Edit Action" : "Add Action"}
           </Typography>
-          <IconButton style={{ backgroundColor: 'red', color: 'white' }} onClick={handleClose}>
+          <IconButton className='closeButton' onClick={handleClose}>
             <CloseIcon />
           </IconButton>
         </Grid>
         <form onSubmit={handleSubmit}>
-          <Grid container direction="row" spacing={2}>
-            <Grid item xs={10} md={10}>
-              <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
-                Action Type
-                <span style={{ color: 'red' }}>*</span>
-              </div>
-              <TextField
-                select
-                placeholder='Action Type'
-                name="actionType"
-                value={Object.keys(action)[0]}
-                onChange={(e) => handleKeyChange(e)}
-                fullWidth
-              >
-                {ACTION_TYPE_OPTIONS.map((option) => (
-                  <MenuItem key={option} value={option}>{option}</MenuItem>
-                ))}
-              </TextField>
-            </Grid>
-             <Grid item xs={10}>
-              <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
-                Paramaters
-                <span style={{ color: 'red' }}>*</span>
-              </div>
-              {currentKey !== 'keyPress' && currentKey !== 'url' ? (
+          <Grid container direction="row" spacing={2} style={{ paddingBottom: '5px', paddingTop: '10px', paddingLeft: '3%', paddingRight: '3%' }}>
+            <Grid container direction="row" spacing={2}>
+              <Grid item xs={6} md={6}>
+                <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
+                  Action Type
+                  <span style={{ color: 'red' }}>*</span>
+                </div>
+                <TextField
+                  select
+                  placeholder='Action Type'
+                  name="actionType"
+                  value={Object.keys(action)[0]}
+                  onChange={handleKeyChange}
+                  fullWidth
+                >
+                  {ACTION_TYPE_OPTIONS.map((option) => (
+                    <MenuItem key={option} value={option}>{option}</MenuItem>
+                  ))}
+                </TextField>
+              </Grid>
+
+              {otherValues && currentKey !== 'refresh' && currentKey !== 'url' && currentKey !== 'keyPress' &&
                 <>
-                  <Autocomplete
-                    options={ALL_OBJECTS}
-                    value={Object?.values(action)?.[0]?.[0] ?? ""}
-                    onChange={(event, newValue) => handleAutocompleteChange(event, newValue)}
-                    renderInput={(params) => (
-                      <TextField {...params} label="Select Objects" fullWidth />
-                    )}
-                  />
+                  <Grid item xs={6} md={6}>
+                    <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
+                      Selector Type
+                      <span style={{ color: 'red' }}>*</span>
+                    </div>
+                    <Autocomplete
+                      options={ALL_OBJECTS}
+                      required='true'
+                      value={Object?.values(action)?.[0]?.[0] ?? ""}
+                      onChange={(event, newValue) => handleAutocompleteChange(event, newValue)}
+                      renderInput={(params) => (
+                        <TextField {...params} label="Select Objects" fullWidth />
+                      )}
+                    />
+                  </Grid>
+                  <Grid item xs={6} md={6}>
+                    <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
+                      Selector
+                      <span style={{ color: 'red' }}>*</span>
+                    </div>
+                    <TextField
+                      margin='dense'
+                      placeholder={`Enter Selector`}
+                      type='text'
+                      required='true'
+                      onChange={(e) => handleValueChange(1, e)}
+                      value={Object.values(action)?.[0]?.[1] ?? ""}
+                      variant='outlined'
+                      fullWidth
+                    />
+                  </Grid>
+                  <Grid item xs={6} md={6}>
+                    <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
+                      Occurance
+                    </div>
+                    <TextField
+                      margin='dense'
+                      placeholder={`Enter Occurance `}
+                      type='number'
+                      onChange={(e) => handleValueChange(4, e)}
+                      value={Object.values(action)?.[0]?.[4] ?? ""}
+                      variant='outlined'
+                      fullWidth
+                    />
+                  </Grid>
+                  <Grid item xs={6} md={6}>
+                    <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
+                      iFrame
+                    </div>
+                    <TextField
+                      margin='dense'
+                      placeholder={`Enter iFrame `}
+                      type='text'
+                      onChange={(e) => handleValueChange(5, e)}
+                      value={Object.values(action)?.[0]?.[5] ?? ""}
+                      variant='outlined'
+                      fullWidth
+                    />
+                  </Grid>
+                </>}
+              {otherValues && currentKey === 'clickAtPosition' || currentKey === 'hoverAtPosition' ?
+                <>
+                  <Grid item xs={6} md={6}>
+                    <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
+                      X
+                      <span style={{ color: 'red' }}>*</span>
+                    </div>
+                    <TextField
+
+                      margin='dense'
+                      placeholder={`Enter X `}
+                      required='true'
+                      type='number'
+                      onChange={(e) => handleValueChange(2, e)}
+                      value={Object.values(action)?.[0]?.[2] ?? ""}
+                      variant='outlined'
+                      fullWidth
+                    />
+                  </Grid>
+                  <Grid item xs={6} md={6}>
+                    <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
+                      Y
+                      <span style={{ color: 'red' }}>*</span>
+                    </div>
+                    <TextField
+                      margin='dense'
+                      placeholder={`Enter Y`}
+                      required='true'
+                      type='text'
+                      onChange={(e) => handleValueChange(3, e)}
+                      value={Object.values(action)?.[0]?.[3] ?? ""}
+                      variant='outlined'
+                      fullWidth
+                    />
+                  </Grid>
+                </> : <></>}
+              {otherValues && currentKey === 'input' &&
+                <Grid item xs={6} md={6}>
+                  <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
+                    Value
+                    <span style={{ color: 'red' }}>*</span>
+                  </div>
                   <TextField
                     margin='dense'
-                    placeholder={`Enter Selector`}
+                    placeholder={`Enter Value`}
                     type='text'
-                    onChange={(e) => handleValueChange(1, e)}
-                    value={Object.values(action)?.[0]?.[1] ?? ""}
-                    variant='outlined'
-                    fullWidth
-                  />
-                  <TextField
-                    margin='dense'
-                    placeholder={`Enter Value `}
-                    type='text'
+                    required='true'
                     onChange={(e) => handleValueChange(2, e)}
                     value={Object.values(action)?.[0]?.[2] ?? ""}
                     variant='outlined'
                     fullWidth
                   />
+                </Grid>}
+              {otherValues && currentKey === 'keyPress' &&
+                <Grid item xs={7} md={7}>
+                  <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
+                    Enter Key
+                    <span style={{ color: 'red' }}>*</span>
+                  </div>
                   <TextField
                     margin='dense'
-                    placeholder={`Enter Occurance `}
+                    placeholder={`Enter Key To Be Pressed`}
                     type='text'
-                    onChange={(e) => handleValueChange(3, e)}
-                    value={Object.values(action)?.[0]?.[3] ?? ""}
+                    required='true'
+                    onChange={(e) => handleValueChange(0, e)}
+                    value={Object.values(action)?.[0]?.[0] ?? ""}
                     variant='outlined'
                     fullWidth
                   />
-                </>
-              ) : (
-                <TextField
-                  margin='dense'
-                  placeholder={`Enter Param `}
-                  type='text'
-                  onChange={handleChange}
-                  value={Object.values(action)?.[0]}
-                  variant='outlined'
-                  fullWidth
-                />
-              )}
+                </Grid>}
+              {otherValues && currentKey === 'url' &&
+                <Grid item xs={7} md={7}>
+                  <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
+                    Enter Url
+                    <span style={{ color: 'red' }}>*</span>
+                  </div>
+                  <TextField
+                    margin='dense'
+                    placeholder='Enter Url'
+                    type='text'
+                    required='true'
+                    onChange={(e) => handleValueChange(0, e)}
+                    value={Object.values(action)?.[0]?.[0] ?? ""}
+                    variant='outlined'
+                    fullWidth
+                  />
+                </Grid>}
             </Grid>
-            <Grid item xs={12}>
+            <Grid container xs={12} style={{paddingTop: '2%'}}>
               <Button type="submit" variant="contained" color="primary">
                 {isEdit ? "Update Action" : "Save Action"}
               </Button>
