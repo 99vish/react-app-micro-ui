@@ -61,7 +61,7 @@ const normalizeReferences = (references) => {
   return references.map(ref => {
     if ('jsonRef' in ref) {
       return {
-        referenceType: 'JSONRef',
+        referenceType: 'jsonRef',
         referenceUrl: ref.jsonRef,
         inputVariables: ref.inputVariables,
         outputVariables: ref.outputVariables
@@ -197,9 +197,6 @@ const StepBoxPopup = ({ open, handleClose, onSubmit, initialData, isEdit, allFil
         ...prevStep,
         references: updatedReference,
       }));
-      // setStep(prevStep=>{
-      //   return {...prevStep, references: updatedReference}
-      // })
     } else {
       const obj = step.references[0];
       const temp = {
@@ -243,7 +240,7 @@ const StepBoxPopup = ({ open, handleClose, onSubmit, initialData, isEdit, allFil
   const handleEditReference = (index) => {
 
     const reference = step.references[index];
-    if (reference.referenceType == "JSONRef") {
+    if (reference.referenceType == "jsonRef") {
       const jsonRef = step.references[index].referenceUrl; // Path from normalizedInitialData      
       const file = allFiles.find(file => normalizePath(file.filePath).includes(normalizePath(jsonRef)));
 
@@ -344,7 +341,7 @@ const StepBoxPopup = ({ open, handleClose, onSubmit, initialData, isEdit, allFil
                 {step.references.map((reference, index) => (
                   <li key={index} className="stepItem">
                     <span className="stepName">
-                      {reference?.referenceType || `Reference ${index + 1}`}
+                      {`${reference?.referenceType} - ${reference?.referenceUrl}`  || `Reference ${index + 1}`}
                     </span>
                     <div className="stepReference">
                       <Tooltip title="Edit">
