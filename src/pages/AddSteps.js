@@ -1,4 +1,4 @@
-import { TextField, Button, Grid, makeStyles } from '@material-ui/core';
+import { TextField, Button, Grid, makeStyles, Typography } from '@material-ui/core';
 import React, { useEffect, useState } from "react";
 import HeaderDivider from '../components/headerWithDivider';
 import { STEP_TYPE_OPTIONS, ACTION_TYPE_OPTIONS, OBJECTS_OPTIONS, SELECTOR_TYPE_OPTIONS } from '../constants/constants';
@@ -8,6 +8,9 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import StepBoxPopup from '../popups/StepBoxPopup';
 import { useLocation } from 'react-router-dom';
 import HookPopup from '../popups/HookPopup';
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import ExpandLessIcon from "@mui/icons-material/ExpandLess";
+import { BorderBottom } from '@mui/icons-material';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -43,8 +46,8 @@ const useStyles = makeStyles((theme) => ({
   hooksContainer: {
     paddingLeft: '20px',
     paddingRight: '20px',
-    paddingTop: '10px',
-    paddingBottom: '10px'
+    // paddingTop: '10px',
+    // paddingBottom: '10px'
   },
   hookList: {
     listStyleType: 'none',
@@ -58,8 +61,68 @@ const useStyles = makeStyles((theme) => ({
   },
   hookName: {
     flexGrow: 1,
+  },
+  addButton: {
+    marginTop: "10px",
+    textTransform: "none",
+  },
+  // display: flex;
+  //   justify-content: space-between;
+  //   align-items: center;
+  //   padding: 10px 10px;
+  //   border-bottom: 1px solid #ddd;
+  //   width: 100%;
+  //   list-style-type: none;
+  sectionHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: "15px 15px",
+    cursor: "pointer",
+    borderBottom: "1px solid #ccc",
+  },
+  sectionHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: "15px 15px",
+    cursor: "pointer",
+    borderBottom: "1px solid #ccc",
+  },
+  sectionContent: {
+    paddingLeft: '20px',
+    paddingRight: '20px',
   }
+  
 }));
+
+function generateDirectoryStructure(filePaths) {
+  const directoryStructure = {};
+
+  filePaths.forEach(filePath => {
+    const parts = filePath.split('\\'); // Split by backslash to separate directories
+    let currentLevel = directoryStructure;
+
+    parts.forEach((part, index) => {
+      if (index === parts.length - 1) {
+        // Last part of the path (file name), directly store as file name
+        if (Array.isArray(currentLevel)) {
+          currentLevel.push(part);
+        } else {
+          currentLevel[part] = part;
+        }
+      } else {
+        // Check if it's the second last part and initialize as array
+        if (!currentLevel[part]) {
+          currentLevel[part] = (index === parts.length - 2) ? [] : {};
+        }
+        currentLevel = currentLevel[part];
+      }
+    });
+  });
+
+  return directoryStructure;
+}
 
 export default function AddSteps(props) {
   // const context = useContext(AppContext);
@@ -67,6 +130,8 @@ export default function AddSteps(props) {
   const location = useLocation();
 
   const { fileData, allFiles } = location.state;
+
+  console.log(JSON.parse(fileData.fileContent).beforeAll);
 
 
   const [stepBoxOpen, setStepBoxOpen] = useState(false)
@@ -85,12 +150,32 @@ export default function AddSteps(props) {
   steps: []
   });
 
+  // State to manage expanded hooks
+  const [expandedSections, setExpandedSections] = useState({
+    beforeAll: false,
+    beforeEach: false,
+    afterAll: false,
+    afterEach: false,
+  });
+
+  // Function to toggle section expansion
+  const toggleSection = (section) => {
+    setExpandedSections((prevExpandedSections) => ({
+      ...prevExpandedSections,
+      [section]: !prevExpandedSections[section],
+    }));
+  };
+
   
   useEffect(() => {
     if (fileData) {
       setFormData(JSON.parse(fileData.fileContent));
     }
   }, [fileData]);
+
+  const allFilePaths = allFiles.map(file=>file.filePath);
+  const directoryStructure = generateDirectoryStructure(allFilePaths);
+  console.log(directoryStructure);
 
 
   const handleScenarioChange = (e) => {
@@ -298,64 +383,73 @@ export default function AddSteps(props) {
           </Grid>
         </Grid>
 
-        {/* Hooks Information Grid */}
-        <Grid container style={{ marginBottom: '2%' }}>
-          <HeaderDivider
-            title={
-              <div style={{ display: 'flex' }}>
-                <h3 className={classes.headerStyle}>Hooks Information</h3>
+       {/* Hooks Information Grid */}
+      <Grid className='steps-grid' container direction="row" style={{ paddingBottom: '40px', paddingTop: '20px' }} >
+        <HeaderDivider
+          title={
+            <div style={{ display: "flex" }}>
+              <h3 className={classes.headerStyle}>Hooks Information</h3>
+            </div>
+          }
+        />
+        <Grid container direction="column" style={{paddingLeft: '2%', marginRight: '2%', paddingTop: '15px', paddingRight: '3%', paddingBottom: '5px'}}>
+        {["beforeAll", "beforeEach", "afterAll", "afterEach"].map((hookType) => (
+          <div key={hookType} className={classes.collapsibleSection}>
+            <div className={classes.sectionHeader} onClick={() => toggleSection(hookType)}>
+              <span>
+                <Typography className={classes.heading}>
+                  {hookType.charAt(0).toUpperCase() + hookType.slice(1)}
+                </Typography>
+              </span>
+              <div >
+                {expandedSections[hookType] ? <ExpandLessIcon /> : <ExpandMoreIcon />}
               </div>
-            }
-          />
-          {['beforeAll', 'beforeEach', 'afterAll', 'afterEach'].map((hookType) => (
-            <Grid container direction="row" className={classes.hooksContainer}>
-              <HeaderDivider
-                title={
-                  <div style={{ display: 'flex' }}>
-                    <h3 className={classes.headerStyle}>{hookType.charAt(0).toUpperCase() + hookType.slice(1)}</h3>
-                  </div>
-                }
-              />
-              <Grid container direction="row" style={{ paddingLeft: '2%', paddingBottom: '20px' }}>
-                <ul className={classes.hookList}>
-                  {formData[hookType].map((hook, index) => (
-                    <li key={index} className={classes.hookItem}>
-                      <span className={classes.hookName}>{hook.name || `Hook ${index + 1}`}</span>
-                      <div className='stepReferences'>
-                        <Tooltip title="Edit">
-                          <IconButton
-                            onClick={() => handleHookDialogOpen(hookType, index)}
-                          >
-                            <EditIcon />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Delete">
-                          <IconButton
-                            onClick={() => removeHook(hookType, index)}
-                          >
-                            <DeleteIcon />
-                          </IconButton>
-                        </Tooltip>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-                <Button
-                  variant="contained" color="primary" className="add-hook-button"
-                  onClick={() => handleHookDialogOpen(hookType,null)}
-                >
-                  Add Hook
-                </Button>
-                <HookPopup
-                  open={hookDialogOpen && currentHookType === hookType} // Adjust condition based on your logic
-                  onClose={handleHookDialogClose}
-                  onSave={handleSaveHook}
-                  initialData={currentHookIndex !== null ? formData[hookType][currentHookIndex] : null}
-                />
-              </Grid>
-            </Grid>
-           ))} 
+              
+            </div>
+            {expandedSections[hookType] && (
+              <div className={classes.sectionContent}>
+                <Grid container direction="column" className={classes.hooksContainer}>
+                  <ul className={classes.hookList}>
+                    {formData[hookType].map((hook, index) => (
+                      <li key={index} className='stepItem'>
+                        <span className={classes.stepName}>{hook.name || `Hook ${index + 1}`}</span>
+                        <div className="stepReferences">
+                          <Tooltip title="Edit">
+                            <IconButton onClick={() => handleHookDialogOpen(hookType, index)}>
+                              <EditIcon />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Delete">
+                            <IconButton onClick={() => removeHook(hookType, index)}>
+                              <DeleteIcon />
+                            </IconButton>
+                          </Tooltip>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    className={classes.addButton}
+                    onClick={() => handleHookDialogOpen(hookType, null)}
+                  >
+                    Add Hook
+                  </Button>
+                  <HookPopup
+                    open={hookDialogOpen && currentHookType === hookType} // Adjust condition based on your logic
+                    onClose={handleHookDialogClose}
+                    onSave={handleSaveHook}
+                    initialData={currentHookIndex !== null ? formData[hookType][currentHookIndex] : null}
+                  />
+                </Grid>
+              </div>
+            )}
+            
+          </div>
+        ))}
         </Grid>
+      </Grid>
 
         {/* Steps Information */}
 
@@ -371,7 +465,7 @@ export default function AddSteps(props) {
             <ul className='listItem'>
               {formData.steps.map((step, index) => (
                 <li key={index} className="stepItem">
-                  <span className="stepName">{`${index+1}. ${step.stepName} - (${step.stepType})` || `Step ${index + 1}`}</span>
+                  <span className="stepName">{`${step.stepName} - (${step.stepType})` || `Step ${index + 1}`}</span>
                   <div className='stepReferences'>
                     <Tooltip title="Edit">
                       <IconButton

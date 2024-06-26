@@ -15,12 +15,16 @@ const LandingPage = () => {
       const allFiles = response.data;
       setFiles(allFiles);
       const jsonFiles = allFiles.filter(file => file.fileType === 'json');
+      const filePaths = jsonFiles.map(file => file.filePath);
+      console.log(filePaths);
       setJsonFiles(jsonFiles);
     } catch (error) {
       console.error('Error fetching JSON files:', error);
       alert('Invalid file path');
     }
   };
+
+  console.log(files);
 
   const handleEditFile = (file) => {
     navigate('/add-steps', { state: { fileData: file, allFiles: files } });

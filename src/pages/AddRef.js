@@ -70,9 +70,11 @@ export default function AddRule(props) {
   // const context = useContext(AppContext);
   const classes = useStyles();
   const location = useLocation();
-  const { fileData, allFiles, stepType } = location.state;
+  const { fileData, allFiles, type, stepType } = location.state;
 
-  const [jsonFileContent, setJsonFileContent] = useState(() => stepType === "JSONRef" ? JSON.parse(fileData.fileContent) : fileData);
+  console.log(fileData);
+
+  const [jsonFileContent, setJsonFileContent] = useState(() => type === "jsonRef" ? JSON.parse(fileData.fileContent) : fileData);
   const [inputVariablePopupOpen, setInputVariablePopupOpen] = useState(false)
   const [isInputVariableEdit, setIsInputVariableEdit] = useState(false)
   const [actionPopupOpen, setActionPopupOpen] = useState(false);
@@ -84,7 +86,7 @@ export default function AddRule(props) {
   const [outputVariablePopupOpen, setOutputVariablePopupOpen] = useState(false);
   const [isOutputVariableEdit, setIsOutputVariableEdit] = useState(false);
   const [currentOutputVariableIndex, setCurrentOutputVariableIndex] = useState(null);
-  const [refType, setRefType] = useState('UI')
+  const [refType, setRefType] = useState('')
   const [params, setParams] = useState(false)
 
   const [reference, setReference] = useState({
@@ -100,10 +102,12 @@ export default function AddRule(props) {
   useEffect(() => {
     if (fileData) {
       setReference(jsonFileContent);
+      console.log(jsonFileContent);
     }
   }, [fileData]);
 
   console.log(fileData);
+  
 
   const handleSaveInputVariable = (inputVariable) => {
     const { key, value } = inputVariable;
@@ -234,9 +238,14 @@ export default function AddRule(props) {
     });
   };
 
+  useEffect(() => {
+    if (stepType) {
+      setRefType(stepType);
+    }
+  }, [stepType]);
+
   const handleRefTypeChange = (e) => {
-    const { name, value } = e.target;
-    setRefType(value)
+    setRefType(e.target.value)
   }
 
   const saveAsJson = async () => {
@@ -284,6 +293,8 @@ export default function AddRule(props) {
     URL.revokeObjectURL(link.href);
   };
 
+  console.log(stepType);
+
   return (
     <Grid container direction="row" className={classes.cardGrid}>
       <div style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
@@ -316,11 +327,7 @@ export default function AddRule(props) {
         </Grid>
       </div>
 
-
-      {/* Input Variable Grid */}
-
-      <Grid className='reference-grid' container direction="row" style={{ paddingBottom: '5px', paddingTop: '20px' }}>
-        <Grid item xs={1} md={1}>
+      <Grid item xs={1} md={1}>
 
           <TextField
             select
@@ -335,6 +342,56 @@ export default function AddRule(props) {
             ))}
           </TextField>
         </Grid>
+
+
+      {/* Query Params Grid */}
+
+      {stepType === 'API' && 
+      <Grid className='reference-grid' container direction="row" style={{ paddingBottom: '5px', paddingTop: '20px' }}>
+        
+        <HeaderDivider
+          title={
+            <div style={{ display: 'flex' }}>
+              <h3 className={classes.headerStyle}>Query Parameters</h3>
+            </div>
+          }
+        />
+        <Grid container direction="row" style={{ paddingLeft: '2%', paddingBottom: '20px', marginTop: '15px' }}>
+          <Grid item xs={12}>
+            {reference?.inputVariables && Object.keys(reference.inputVariables).length > 0 ? (
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={handleOpenInputVariablePopup}
+              >
+                Edit Query Parameters
+              </Button>
+            ) : (
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={handleOpenInputVariablePopup}
+              >
+                Add Query Parameters
+              </Button>
+            )}
+          </Grid>
+          <InputVariablePopup
+            open={inputVariablePopupOpen}
+            handleClose={handleCloseInputVariablePopup}
+            onSave={handleSaveInputVariable}
+            initialData={isInputVariableEdit ? reference?.inputVariables : null}
+            isEdit={isInputVariableEdit}
+          />
+        </Grid>
+      </Grid>
+      }
+
+      {/* Input Variable Grid */}
+      
+      {stepType === 'UI' && 
+      <Grid className='reference-grid' container direction="row" style={{ paddingBottom: '5px', paddingTop: '20px' }}>
+        
         <HeaderDivider
           title={
             <div style={{ display: 'flex' }}>
@@ -371,6 +428,73 @@ export default function AddRule(props) {
           />
         </Grid>
       </Grid>
+      }
+
+      {/* Other Information */}
+
+      {stepType === 'API' && 
+      <Grid container style={{ marginBottom: '20px' }}>
+        <HeaderDivider
+          title={
+            <div style={{ display: 'flex' }}>
+              <h3 className={classes.headerStyle}>HTTP Request Details</h3>
+            </div>
+          }
+        />
+        <Grid container direction="row" style={{ paddingLeft: '2%', paddingBottom: '20px' }} spacing={2}>
+          <Grid item xs={4} md={2} ls={2} xl={2}>
+            <div style={{ paddingBottom: '8px', paddingTop: '10px' }}>
+              Request Type
+              <span style={{ color: 'red' }}>*</span>
+            </div>
+            <TextField
+              select
+              name="reqType"
+              placeholder='Select Request Type'
+              fullWidth
+              value={reference.reqType}
+              onChange={handleChange}
+            >
+              {REQUEST_TYPE.map((operator) => (
+                <MenuItem key={operator} value={operator}> {operator} </MenuItem>
+              ))}
+            </TextField>
+          </Grid>
+          <Grid item xs={6} md={5} ls={5} xl={5}>
+            <div style={{ paddingTop: '10px' }}>
+              Url
+            </div>
+            <TextField
+              margin='dense'
+              name="url"
+              placeholder="Enter Url"
+              fullWidth
+              id="url"
+              type='url'
+              onChange={handleChange}
+              value={reference.url}
+              variant='outlined'
+            />
+          </Grid>
+          <Grid item xs={6} md={4.5} ls={5} xl={5}>
+            <div style={{ paddingTop: '10px' }}>
+              Payload
+            </div>
+            <TextField
+              margin='dense'
+              name="payload"
+              placeholder="Enter Payload"
+              fullWidth
+              id="payload"
+              type='text'
+              onChange={handleChange}
+              value={reference.payload}
+              variant='outlined'
+            />
+          </Grid>
+        </Grid>
+      </Grid>
+      }
 
       {/* Assertions Grid */}
 
@@ -426,7 +550,7 @@ export default function AddRule(props) {
 
 
       {/* Actions Grid  */}
-
+      {stepType === 'UI' && 
       <Grid className='actions-grid' container direction="row" style={{ paddingBottom: '5px' }}>
         <HeaderDivider
           title={
@@ -472,6 +596,7 @@ export default function AddRule(props) {
           isEdit={isActionEdit}
         />
       </Grid>
+      }
 
       {/* Output Variables Grid */}
 
@@ -518,6 +643,7 @@ export default function AddRule(props) {
             Add Output Variables
           </Button>
           <OutputVariablePopup
+            stepType={stepType}
             open={outputVariablePopupOpen}
             handleClose={handleCloseOutputVariableBox}
             onSubmit={handleSaveOutputVariable}
@@ -527,67 +653,8 @@ export default function AddRule(props) {
         </Grid>
       </Grid>
 
-      <Grid container style={{ marginBottom: '20px' }}>
-        <HeaderDivider
-          title={
-            <div style={{ display: 'flex' }}>
-              <h3 className={classes.headerStyle}>Other Information</h3>
-            </div>
-          }
-        />
-        <Grid container direction="row" style={{ paddingLeft: '2%', paddingBottom: '20px' }}>
-          <Grid item xs={4} md={2} ls={2} xl={2}>
-            <div style={{ paddingBottom: '8px', paddingTop: '10px' }}>
-              Request Type
-              <span style={{ color: 'red' }}>*</span>
-            </div>
-            <TextField
-              select
-              name="reqType"
-              placeholder='Select Request Type'
-              fullWidth
-              value={reference.reqType}
-              onChange={handleChange}
-            >
-              {REQUEST_TYPE.map((operator) => (
-                <MenuItem key={operator} value={operator}> {operator} </MenuItem>
-              ))}
-            </TextField>
-          </Grid>
-          <Grid item xs={6} md={5} ls={5} xl={5} style={{ paddingLeft: '10px', paddingRight: '10px' }}>
-            <div style={{ paddingTop: '10px' }}>
-              Url
-            </div>
-            <TextField
-              margin='dense'
-              name="url"
-              placeholder="Enter Url"
-              fullWidth
-              id="url"
-              type='url'
-              onChange={handleChange}
-              value={reference.url}
-              variant='outlined'
-            />
-          </Grid>
-          <Grid item xs={6} md={4.5} ls={5} xl={5}>
-            <div style={{ paddingTop: '10px' }}>
-              Payload
-            </div>
-            <TextField
-              margin='dense'
-              name="payload"
-              placeholder="Enter Payload"
-              fullWidth
-              id="payload"
-              type='text'
-              onChange={handleChange}
-              value={reference.payload}
-              variant='outlined'
-            />
-          </Grid>
-        </Grid>
-      </Grid>
+      
+
 
     </Grid>
   )

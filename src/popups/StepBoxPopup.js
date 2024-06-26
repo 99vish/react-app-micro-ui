@@ -96,6 +96,7 @@ const StepBoxPopup = ({ open, handleClose, onSubmit, initialData, isEdit, allFil
   const classes = useStyles();
   const [stepType, setStepType] = useState('')
   const normalizedInitialData = getNormalizedInitialData(initialData);
+  const navigate = useNavigate();
 
   const [referencePopupOpen, setReferencePopupOpen] = useState(false);
   const [currentReferenceIndex, setCurrentReferenceIndex] = useState(null);
@@ -106,6 +107,8 @@ const StepBoxPopup = ({ open, handleClose, onSubmit, initialData, isEdit, allFil
     useLabel: '',
     references: []
   });
+
+  
 
   useEffect(() => {
     if (isEdit && normalizedInitialData) {
@@ -182,6 +185,7 @@ const StepBoxPopup = ({ open, handleClose, onSubmit, initialData, isEdit, allFil
       const file = allFiles.find(file => normalizePath(file.filePath).includes(normalizePath(jsonRef)));
 
       if (file) {
+        navigate('/add-ref', { state: { fileData: file, allFiles: allFiles, type: "jsonRef", stepType: stepType } });
         let fileContentJSON = stepType === "JSONRef" ? JSON.parse(file.fileContent) : file
         setCurrentReferenceIndex(index)
         setIsReferenceEdit(true)
@@ -194,7 +198,7 @@ const StepBoxPopup = ({ open, handleClose, onSubmit, initialData, isEdit, allFil
       setCurrentReferenceIndex(index)
       setIsReferenceEdit(true)
       setReferencePopupOpen(true)
-      // navigate('/add-ref', { state: { fileData: reference, allFiles: allFiles, type: "funcRef" } });
+      // navigate('/add-ref', { state: { fileData: reference, allFiles: allFiles, type: "funcRef", stepType: stepType } });
     }
   };
 

@@ -58,10 +58,14 @@ const OutputVariablePopup = ({ stepType, open, handleClose, onSubmit, initialDat
 
   const [outputVariable, setOutputVariable] = useState({
     type: stepType || '',
-    key: [''],
+    key: stepType === 'UI' ? [''] : '',
     operator: '',
     variable: ''
   })
+
+  console.log(stepType);
+
+  console.log(initialData)
 
   useEffect(() => {
     if (isEdit && initialData) {
@@ -69,7 +73,7 @@ const OutputVariablePopup = ({ stepType, open, handleClose, onSubmit, initialDat
     } else {
       setOutputVariable({
         type: stepType || '',
-        key: [''],
+        key: stepType === 'UI' ? [''] : '',
         operator: '',
         value: ''
       });
@@ -81,26 +85,36 @@ const OutputVariablePopup = ({ stepType, open, handleClose, onSubmit, initialDat
   };
 
   const handleKeyChange = (index, event) => {
-    const newKeys = [...outputVariable.key];
-    newKeys[index] = event.target.value;
-    setOutputVariable({
-      ...outputVariable,
-      key: newKeys,
-    });
+    if (stepType === 'UI') {
+      const newKeys = [...outputVariable.key];
+      newKeys[index] = event.target.value;
+      console.log(newKeys);
+      console.log(index);
+      setOutputVariable({
+        ...outputVariable,
+        key: newKeys,
+      });
+    } else {
+      setOutputVariable({ ...outputVariable, key: event.target.value });
+    }
   };
   const addKeyField = () => {
-    setOutputVariable({
-      ...outputVariable,
-      key: [...outputVariable.key, ''],
-    });
+    if (stepType === 'UI') {
+      setOutputVariable({
+        ...outputVariable,
+        key: [...outputVariable.key, ''],
+      });
+    }
   };
 
   const deleteKeyField = (index) => {
-    const newKeys = outputVariable.key.filter((_, i) => i !== index);
-    setOutputVariable({
-      ...outputVariable,
-      key: newKeys,
-    });
+    if (stepType === 'UI') {
+      const newKeys = outputVariable.key.filter((_, i) => i !== index);
+      setOutputVariable({
+        ...outputVariable,
+        key: newKeys,
+      });
+    }
   };
 
   const handleSubmit = (e) => {
@@ -137,7 +151,7 @@ const OutputVariablePopup = ({ stepType, open, handleClose, onSubmit, initialDat
             <Grid item xs={12} md={6} ls={6} xl={6}>
               <div>
                 Key
-                {outputVariable.key.map((key, index) => (
+                {stepType === 'UI' ? (outputVariable.key.map((keyData, index) => (
                   <Grid container alignItems="center" key={index}>
                     <Grid item>
                       <TextField
@@ -147,7 +161,7 @@ const OutputVariablePopup = ({ stepType, open, handleClose, onSubmit, initialDat
                         id={`outputKey-${index}`}
                         type='text'
                         onChange={e => handleKeyChange(index, e)}
-                        value={key}
+                        value={keyData}
                         variant='outlined'
                       />
                     </Grid>
@@ -164,11 +178,25 @@ const OutputVariablePopup = ({ stepType, open, handleClose, onSubmit, initialDat
                       </Grid>
                     )}
                   </Grid>
-                ))}
+                ))): 
+                (
+                  <Grid item>
+                  <TextField
+                    margin='dense'
+                    name="key"
+                    placeholder="Enter Key"
+                    id="outputKey"
+                    type='text'
+                    onChange={handleChange}
+                    value={outputVariable.key}
+                    variant='outlined'
+                  />
+                  </Grid>
+                )}
               </div>
             </Grid>
             <Grid item xs={12} md={6} ls={6} xl={6}>
-              <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
+              <div >
                 Variable
               </div>
               <TextField
@@ -194,5 +222,6 @@ const OutputVariablePopup = ({ stepType, open, handleClose, onSubmit, initialDat
     </Modal >
   );
 };
+
 
 export default OutputVariablePopup;

@@ -3,10 +3,13 @@ import { Box, Button, TextField, Modal, Typography, Grid, IconButton, MenuItem, 
 import DeleteIcon from '@mui/icons-material/Delete';
 import { REQUEST_TYPE, STEP_TYPE_OPTIONS } from '../constants/constants';
 import HeaderDivider from '../components/headerWithDivider';
-import { makeStyles } from '@material-ui/core';
+import { FormControl, InputLabel, Select, makeStyles } from '@material-ui/core';
 import AddIcon from '@mui/icons-material/Add';
 import CloseIcon from '@mui/icons-material/Close';
 import OutputVariablePopup from './OutputVariablePopup';
+import { TreeItem, TreeView } from '@mui/lab';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import InputVariablePopup from './InputVariablePopup';
 import AssertionBoxPopup from '../popups/AssertionPopup';
 import EditIcon from '@mui/icons-material/Edit';
@@ -56,6 +59,17 @@ const useStyles = makeStyles((theme) => ({
     borderRadius: '2px',
     border: '1px solid #DDDBDA'
   },
+  treeView: {
+    height: 240,
+    flexGrow: 1,
+    maxWidth: 400,
+    overflowY: 'auto',
+  },
+  filePathContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: theme.spacing(2),
+  },
   modalContainer: {
     display: 'flex',
     alignItems: 'center',
@@ -72,6 +86,36 @@ const useStyles = makeStyles((theme) => ({
     boxShadow: theme.shadows[5],
   }
 }));
+
+function generateDirectoryStructure(filePaths) {
+  const directoryStructure = {};
+
+  filePaths.forEach(filePath => {
+    const parts = filePath.split('\\'); // Split by backslash to separate directories
+    let currentLevel = directoryStructure;
+
+    parts.forEach((part, index) => {
+      if (index === parts.length - 1) {
+        // Last part of the path (file name), directly store as file name
+        if (Array.isArray(currentLevel)) {
+          currentLevel.push(part);
+        } else {
+          currentLevel[part] = part;
+        }
+      } else {
+        // Check if it's the second last part and initialize as array
+        if (!currentLevel[part]) {
+          currentLevel[part] = (index === parts.length - 2) ? [] : {};
+        }
+        currentLevel = currentLevel[part];
+      }
+    });
+  });
+
+  return directoryStructure;
+}
+
+
 
 const ReferencePopup = ({ stepType, open, handleClose, onSubmit, initialData, isEdit, allFiles }) => {
 
@@ -126,6 +170,25 @@ const ReferencePopup = ({ stepType, open, handleClose, onSubmit, initialData, is
       console.log('File not found for referenceIndex:');
     }
   }
+  const allFilePaths = allFiles.map(file=>file.filePath);
+  const directoryStructure = generateDirectoryStructure(allFilePaths);
+  console.log(directoryStructure);
+
+  // Render directory structure recursively
+const renderDirectoryStructure = (directory) => {
+  return Object.keys(directory).map((key) => {
+    if (Array.isArray(directory[key])) {
+      return directory[key].map((file) => (
+        <MenuItem key={file} value={file}>{file}</MenuItem>
+      ));
+    } else {
+      return (
+        <MenuItem key={key} value={key}>{key}</MenuItem>
+      );
+    }
+  });
+};
+
 
   useEffect(() => {
     if (isEdit && initialData) {
@@ -246,6 +309,13 @@ const ReferencePopup = ({ stepType, open, handleClose, onSubmit, initialData, is
       });
     };
 
+  const handleFileSelect = (filePath) => {
+    setReference(prevReference => ({
+      ...prevReference,
+      referenceUrl: filePath
+    }));
+  };
+
 
     const handleSaveOutputVariable = (selectedOutputVariable) => {
       if (isOutputVariableEdit) {
@@ -284,6 +354,28 @@ const ReferencePopup = ({ stepType, open, handleClose, onSubmit, initialData, is
       onSubmit(reference);
       handleClose();
     };
+
+  // const renderTree = (nodes, path = '') => {
+  //   return Object.keys(nodes).map((key) => {
+  //     const currentPath = `${path}/${key}`;
+  //     if (Array.isArray(nodes[key])) {
+  //       return nodes[key].map((file) => (
+  //         <TreeItem
+  //           key={`${currentPath}/${file}`}
+  //           nodeId={`${currentPath}/${file}`}
+  //           label={file}
+  //           onClick={() => handleFileSelect(`${currentPath}/${file}`)}
+  //         />
+  //       ));
+  //     } else {
+  //       return (
+  //         <TreeItem key={currentPath} nodeId={currentPath} label={key}>
+  //           {renderTree(nodes[key], currentPath)}
+  //         </TreeItem>
+  //       );
+  //     }
+  //   });
+  // };
 
     return (
       <Modal
