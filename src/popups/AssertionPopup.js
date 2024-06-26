@@ -129,7 +129,7 @@ const AssertionPopup = ({ stepType, open, handleClose, onSubmit, initialData, is
           <Typography id="modal-title" className='heading'>
             {isEdit ? <h3>Edit Assertion</h3> : <h3>Add Assertion</h3>}
           </Typography>
-          <IconButton style={{  color: 'black' }} onClick={handleClose}>
+          <IconButton className='closeButton' onClick={handleClose}>
             <CloseIcon />
           </IconButton>
         </Grid>
@@ -175,13 +175,11 @@ const AssertionPopup = ({ stepType, open, handleClose, onSubmit, initialData, is
             <Grid item xs={6} md={4}>
               <div style={{ paddingTop: '10px' }}>
                 Selector
-                <span style={{ color: 'red' }}>*</span>
               </div>
               <TextField
                 margin='dense'
                 placeholder={`Enter Selector`}
                 type='text'
-                required='true'
                 onChange={(e) => handleKeyChange(1, e)}
                 value={assertion.key[1]}
                 variant='outlined'
@@ -191,7 +189,6 @@ const AssertionPopup = ({ stepType, open, handleClose, onSubmit, initialData, is
             <Grid item xs={6} md={4}>
               <div style={{ paddingTop: '10px' }}>
                 Occurance
-                <span style={{ color: 'red' }}>*</span>
               </div>
               <TextField
                 margin='dense'
@@ -255,7 +252,7 @@ const AssertionPopup = ({ stepType, open, handleClose, onSubmit, initialData, is
           </Grid>
 
           <Grid item xs={12}>
-            <Button type="submit" variant="contained" color="primary">
+            <Button type="submit" onClick={handleSubmit} variant="contained" color="primary">
               {isEdit ? "Update Assertion" : "Save Assertion"}
             </Button>
           </Grid>

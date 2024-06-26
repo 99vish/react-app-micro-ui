@@ -1,4 +1,5 @@
-import { Grid } from '@material-ui/core';
+import { Grid, IconButton } from '@material-ui/core';
+import { ExpandLess, ExpandMore } from '@mui/icons-material';
 import React from 'react';
 const headerWithDivider = props => {
 	return (
@@ -20,6 +21,9 @@ const headerWithDivider = props => {
 						backgroundColor: '#CECAC8'
 					}}
 				></Grid>
+				<IconButton >
+					{true ? <ExpandLess /> : <ExpandMore />}
+				</IconButton>
 				{props.endContent ? props.endContent : []}
 			</Grid>
 		</React.Fragment>

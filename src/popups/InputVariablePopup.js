@@ -76,7 +76,7 @@ const InputVariablePopup = ({ open, handleClose, onSave, initialData, isEdit }) 
 
   return (
     <Dialog open={open} onClose={handleClose}>
-      <DialogTitle>{isEdit ? 'Edit Input Variables' : 'Add Input Variables'}</DialogTitle>
+      <DialogTitle>{isEdit ? 'Edit Variables' : 'Add Variables'}</DialogTitle>
       <DialogContent className={classes.dialogContent}>
       <Typography variant="body2" color="textSecondary" gutterBottom>
           *If you want to add values in the form of arrays, please use comma-separated values.
