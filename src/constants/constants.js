@@ -27,6 +27,13 @@ export const ASSERTION_OPERATOR_TYPE = [
     'CONTAINS'
 ]
 
+export const REQUEST_TYPE = [
+    'GET',
+    'POST',
+    'POSTWITHKEY',
+    'DELETE'
+]
+
 export const ASSERTION_ASSERT_TYPE = [
     'PAGELOAD',
     'TEXT',

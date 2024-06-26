@@ -64,7 +64,9 @@
     padding-top: 1rem;
     width: 50%;
 }
-
+h3{
+    text-align: left;
+}
 .listItem {
     padding-right: 5%;
 }

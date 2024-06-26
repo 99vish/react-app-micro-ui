@@ -185,7 +185,7 @@ const OutputVariablePopup = ({ stepType, open, handleClose, onSubmit, initialDat
           </Grid>
 
           <Grid item xs={12}>
-            <Button type="submit" variant="contained" color="primary">
+            <Button type="submit" onClick={handleSubmit} variant="contained" color="primary">
               {isEdit ? "Update" : "Save"}
             </Button>
           </Grid>

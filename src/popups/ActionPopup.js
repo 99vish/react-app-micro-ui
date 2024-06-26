@@ -142,7 +142,6 @@ const ActionPopup = ({ open, params, handleClose, onSubmit, initialData, isEdit 
                   <Grid item xs={6} md={6}>
                     <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
                       Selector
-                      <span style={{ color: 'red' }}>*</span>
                     </div>
                     <TextField
                       margin='dense'
@@ -273,7 +272,7 @@ const ActionPopup = ({ open, params, handleClose, onSubmit, initialData, isEdit 
                 </Grid>}
             </Grid>
             <Grid container xs={12} style={{paddingTop: '2%'}}>
-              <Button type="submit" variant="contained" color="primary">
+              <Button type="submit" onClick={handleSubmit} variant="contained" color="primary">
                 {isEdit ? "Update Action" : "Save Action"}
               </Button>
             </Grid>
