@@ -195,7 +195,7 @@ const StepBoxPopup = ({ open, handleClose, onSubmit, initialData, isEdit, allFil
         setCurrentReferenceIndex(index)
         setIsReferenceEdit(true)
         setReferencePopupOpen(true)
-        // navigate('/add-ref', { state: { fileData: file, allFiles: allFiles, type: "jsonRef", stepType: stepType } });
+        navigate('/add-ref', { state: { fileData: file, allFiles: allFiles, type: "jsonRef", stepType: stepType } });
       } else {
         console.log('File not found for referenceIndex:', index);
       }
@@ -203,7 +203,7 @@ const StepBoxPopup = ({ open, handleClose, onSubmit, initialData, isEdit, allFil
       setCurrentReferenceIndex(index)
       setIsReferenceEdit(true)
       setReferencePopupOpen(true)
-      // navigate('/add-ref', { state: { fileData: reference, allFiles: allFiles, type: "funcRef", stepType: stepType } });
+       navigate('/add-ref', { state: { fileData: reference, allFiles: allFiles, type: "funcRef", stepType: stepType } });
     }
   };
 

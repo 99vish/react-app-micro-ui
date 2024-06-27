@@ -80,6 +80,9 @@ const useStyles = makeStyles((theme) => ({
     backgroundColor: 'white',
     padding: theme.spacing(2),
     boxShadow: theme.shadows[5],
+  },
+  closeButton: {
+    marginLeft: 'auto',
   }
 }));
 
@@ -260,6 +263,7 @@ const ReferencePopup = ({ stepType, open, handleClose, onSubmit, initialData, is
     setIsInputVariableEdit(false);
   };
 
+
   const handleOpenInputVariablePopup = (prop) => {
     setInputVariablePopupOpen(true);
     setIsInputVariableEdit(reference?.[prop] && Object.keys(reference?.[prop]).length > 0);
@@ -340,6 +344,112 @@ const ReferencePopup = ({ stepType, open, handleClose, onSubmit, initialData, is
     onSubmit(reference);
     handleClose();
   };
+  
+  
+   const handleSaveOutputVariable = (selectedOutputVariable) => {
+      if (isOutputVariableEdit) {
+        const updatedOutputVariables = [...reference.outputVariables];
+        updatedOutputVariables[currentOutputVariableIndex] = selectedOutputVariable;
+        setReference({ ...reference, outputVariables: updatedOutputVariables });
+      }
+      else {
+        setReference((prevRef) => ({
+          ...prevRef,
+          outputVariables: prevRef.outputVariables ? [...prevRef.outputVariables, selectedOutputVariable] : [selectedOutputVariable]
+        }))
+      }
+      handleCloseOutputVariableBox();
+    };
+
+    const handleOutputVariableEditButtonClick = (index) => {
+      const outputVariableToEdit = reference.outputVariables[index];
+      if (outputVariableToEdit) {
+        setCurrentOutputVariableIndex(index);
+        setIsOutputVariableEdit(true);
+        setOutputVariablePopupOpen(true)
+      }
+    };
+
+    const handleCloseOutputVariableBox = () => {
+      setOutputVariablePopupOpen(false);
+      setIsOutputVariableEdit(false);
+      setCurrentOutputVariableIndex(null);
+    };
+
+
+
+    const handleSubmit = (e) => {
+      e.preventDefault();
+      onSubmit(reference);
+      handleClose();
+    };
+
+    const saveAsJson = async () => {
+
+      // Create a JSON string
+      const jsonString = JSON.stringify(reference, null, 2);
+  
+      try {
+        const handle = await window.showSaveFilePicker();
+        const writableStream = await handle.createWritable();
+  
+        // Write the JSON string to the writable stream
+        await writableStream.write(jsonString);
+  
+        // Close the writable stream
+        await writableStream.close();
+      } catch (err) {
+        console.error('Error saving file:', err);
+      }
+  
+    };
+  
+  
+    const saveJson = async () => {
+      const jsonString = JSON.stringify(reference, null, 2);
+  
+      // Convert JSON string to a Blob
+      const blob = new Blob([jsonString], { type: 'application/json' });
+  
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+  
+      // Set attributes for download dialog
+      link.setAttribute('download', "reference.hbs");
+      link.style.display = 'none';
+  
+      // Append the link to the body
+      document.body.appendChild(link);
+  
+      // Trigger the click event to open the save dialog
+      link.click();
+  
+      // Clean up
+      document.body.removeChild(link);
+      URL.revokeObjectURL(link.href);
+    };
+
+  // const renderTree = (nodes, path = '') => {
+  //   return Object.keys(nodes).map((key) => {
+  //     const currentPath = `${path}/${key}`;
+  //     if (Array.isArray(nodes[key])) {
+  //       return nodes[key].map((file) => (
+  //         <TreeItem
+  //           key={`${currentPath}/${file}`}
+  //           nodeId={`${currentPath}/${file}`}
+  //           label={file}
+  //           onClick={() => handleFileSelect(`${currentPath}/${file}`)}
+  //         />
+  //       ));
+  //     } else {
+  //       return (
+  //         <TreeItem key={currentPath} nodeId={currentPath} label={key}>
+  //           {renderTree(nodes[key], currentPath)}
+  //         </TreeItem>
+  //       );
+  //     }
+  //   });
+  // };
 
 
   return (
@@ -351,14 +461,38 @@ const ReferencePopup = ({ stepType, open, handleClose, onSubmit, initialData, is
       className={classes.modalContainer}
     >
       <Box className={classes.modalContent} sx={style}>
-        <Grid container justifyContent="space-between" alignItems="center">
-          <Typography id="modal-title" className='heading'>
-            {isEdit ? <h3>Edit References</h3> : <h3>Add Reference</h3>}
-          </Typography>
-          <IconButton className='closeButton' onClick={handleClose}>
+        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <IconButton style={{ marginTop: '1%' }} onClick={handleClose}>
             <CloseIcon />
           </IconButton>
-        </Grid>
+        </div>
+          <Grid container justifyContent="space-between" >
+            
+            <Grid container direction="row" spacing={2} className={classes.stickToTop}>
+              
+            <Typography id="modal-title" className='heading' style={{paddingRight: '28.5%'}}>
+              {isEdit ? <h3>Edit Reference</h3> : <h3>Add Reference</h3>}
+            </Typography>
+            
+              <Grid item style={{ marginleft: '2%' }}>
+                <Button
+                  variant="contained" color="primary" className="button"
+                  onClick={saveJson}
+                >
+                  Save
+                </Button>
+              </Grid>
+              <Grid item style={{ marginleft: '2%' }}>
+                <Button
+                  variant="contained" color="primary" className="button"
+                  onClick={saveAsJson}
+                >
+                  Save As
+                </Button>
+              </Grid>
+            </Grid>
+            
+          </Grid>
         <HeaderDivider
           title={
             <div style={{ display: 'flex' }}>
