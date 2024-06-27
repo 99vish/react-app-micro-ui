@@ -4,9 +4,9 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { ACTION_TYPE_OPTIONS, ASSERTION_ASSERT_TYPE, ASSERTION_OPERATOR_TYPE } from '../constants/constants';
 import HeaderDivider from '../components/headerWithDivider';
 import { makeStyles } from '@material-ui/core';
-import AddIcon from '@mui/icons-material/Add';
 import CloseIcon from '@mui/icons-material/Close';
-import { ALL_OBJECTS } from '../constants/allObjects';
+import { parsedObject } from '../constants/singleSourceString';
+
 
 const style = {
   position: 'absolute',
@@ -56,6 +56,7 @@ const useStyles = makeStyles((theme) => ({
 const AssertionPopup = ({ stepType, open, handleClose, onSubmit, initialData, isEdit }) => {
 
   const classes = useStyles();
+  const ALL_OBJECTS = Object.keys(parsedObject)
 
   const [assertion, setAssertion] = useState({
     type: stepType,
@@ -104,7 +105,7 @@ const AssertionPopup = ({ stepType, open, handleClose, onSubmit, initialData, is
   }
 
   const handleCheckboxChange = (e) => {
-    const {name, checked} = e.target
+    const { name, checked } = e.target
     setAssertion({
       ...assertion,
       [name]: checked,
@@ -204,7 +205,7 @@ const AssertionPopup = ({ stepType, open, handleClose, onSubmit, initialData, is
             <Grid item xs={6} md={4} ls={4} xl={4}>
               <div style={{ paddingBottom: '8px', paddingTop: '10px' }}>
                 Operator
-                <span style={{ color: 'red' }}>*</span>
+                {assertion?.key[2] === 'TEXT' && <span style={{ color: 'red' }}>*</span>}
               </div>
               <TextField
                 select
@@ -222,7 +223,7 @@ const AssertionPopup = ({ stepType, open, handleClose, onSubmit, initialData, is
             <Grid item xs={12} md={4} ls={4} xl={4}>
               <div style={{ paddingTop: '10px' }}>
                 Value
-                {assertion?.key[2]==='TEXT' && <span style={{ color: 'red' }}>*</span>}
+                {assertion?.key[2] === 'TEXT' && <span style={{ color: 'red' }}>*</span>}
               </div>
               <TextField
                 margin='dense'
@@ -231,7 +232,7 @@ const AssertionPopup = ({ stepType, open, handleClose, onSubmit, initialData, is
                 fullWidth
                 id='outputKey1'
                 type='text'
-                required={assertion?.key[2]==='TEXT'}
+                required={assertion?.key[2] === 'TEXT'}
                 onChange={handleChange}
                 value={assertion.value}
                 variant='outlined'
@@ -239,7 +240,7 @@ const AssertionPopup = ({ stepType, open, handleClose, onSubmit, initialData, is
             </Grid>
             <Grid item xs={4} md={4} ls={4} xl={4}>
               <label>
-                <input onChange={handleCheckboxChange} type="checkbox"  name="soft" id="soft" />
+                <input onChange={handleCheckboxChange} type="checkbox" name="soft" id="soft" />
                 Soft
               </label>
             </Grid>
@@ -250,7 +251,7 @@ const AssertionPopup = ({ stepType, open, handleClose, onSubmit, initialData, is
               </label>
             </Grid>
           </Grid>
-
+          {parsedObject[assertion?.key[0]]}
           <Grid item xs={12}>
             <Button type="submit" onClick={handleSubmit} variant="contained" color="primary">
               {isEdit ? "Update Assertion" : "Save Assertion"}

@@ -286,7 +286,7 @@ export default function AddSteps(props) {
                 variant="contained" color="primary" className={classes.button}
                 onClick={saveJson}
               >
-                Save
+                Generate JSON
               </Button>
             </Grid>
             <Grid item>
@@ -297,14 +297,14 @@ export default function AddSteps(props) {
                 Save As
               </Button>
             </Grid>
-            <Grid item>
+            {/* <Grid item>
               <Button
                 variant="contained" color="secondary" className="button"
               // onClick={resetData}
               >
                 Reset
               </Button>
-            </Grid>
+            </Grid> */}
           </Grid>
         </div>
 

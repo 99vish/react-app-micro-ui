@@ -85,7 +85,7 @@ const getNormalizedInitialData = (initialData) => {
   if (initialData) {
     return {
       ...initialData,
-      references: normalizeReferences(initialData.references)
+      references: initialData.references
     };
   }
   return null;
@@ -182,28 +182,29 @@ const StepBoxPopup = ({ open, handleClose, onSubmit, initialData, isEdit, allFil
     }
   };
 
+  const [fileContentJSON, setFileContentJSON] = useState()
   const handleEditReference = (index) => {
 
     const reference = step.references[index];
-    if (reference.referenceType == "jsonRef") {
-      const jsonRef = step.references[index].referenceUrl; // Path from normalizedInitialData      
+    if (Object.keys(reference)[0] === 'jsonRef') {
+      const jsonRef = step.references[index]['jsonRef']; // Path from normalizedInitialData      
       const file = allFiles.find(file => normalizePath(file.filePath).includes(normalizePath(jsonRef)));
 
       if (file) {
-        navigate('/add-ref', { state: { fileData: file, allFiles: allFiles, type: "jsonRef", stepType: stepType } });
-        let fileContentJSON = stepType === "JSONRef" ? JSON.parse(file.fileContent) : file
+        // navigate('/add-ref', { state: { fileData: file, allFiles: allFiles, type: "jsonRef", stepType: stepType } });
+        setFileContentJSON(Object.keys(reference)[0] === "jsonRef" ? JSON.parse(file.fileContent) : file) 
         setCurrentReferenceIndex(index)
         setIsReferenceEdit(true)
         setReferencePopupOpen(true)
-        navigate('/add-ref', { state: { fileData: file, allFiles: allFiles, type: "jsonRef", stepType: stepType } });
+        // navigate('/add-ref', { state: { fileData: file, allFiles: allFiles, type: "jsonRef", stepType: stepType } });
       } else {
         console.log('File not found for referenceIndex:', index);
       }
-    } else if (reference.referenceType == "funcRef") {
+    } else if (Object.keys(reference)[0] === "funcRef") {
       setCurrentReferenceIndex(index)
       setIsReferenceEdit(true)
       setReferencePopupOpen(true)
-       navigate('/add-ref', { state: { fileData: reference, allFiles: allFiles, type: "funcRef", stepType: stepType } });
+      //  navigate('/add-ref', { state: { fileData: reference, allFiles: allFiles, type: "funcRef", stepType: stepType } });
     }
   };
 
@@ -218,7 +219,7 @@ const StepBoxPopup = ({ open, handleClose, onSubmit, initialData, isEdit, allFil
       <Box className={classes.modalContent}>
         <Grid container justifyContent="space-between" alignItems="center">
           <Typography id="modal-title" className='heading'>
-            {isEdit ? <h3>Step Details</h3> : <h3>Step Details</h3>}
+            {isEdit ? <h3>{step.stepName}</h3> : <h3>Step Details</h3>}
           </Typography>
           <IconButton onClick={handleClose}>
             <CloseIcon />
@@ -284,19 +285,6 @@ const StepBoxPopup = ({ open, handleClose, onSubmit, initialData, isEdit, allFil
             </Grid>
             <Grid item xs={6} md={4} ls={4} xl={4}>
               <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
-                RHS
-              </div>
-              <TextField
-                placeholder='check condition'
-                name="rhs"
-                type="text"
-                value={step.checkCondition?.rhs}
-                onChange={handleCheckConditionChange}
-                fullWidth
-              />
-            </Grid>
-            <Grid item xs={6} md={4} ls={4} xl={4}>
-              <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
                 LHS
               </div>
               <TextField
@@ -324,6 +312,19 @@ const StepBoxPopup = ({ open, handleClose, onSubmit, initialData, isEdit, allFil
                 <MenuItem key='notEquals' value='notEquals'> Not Equals </MenuItem>
               </TextField>
             </Grid>
+            <Grid item xs={6} md={4} ls={4} xl={4}>
+              <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
+                RHS
+              </div>
+              <TextField
+                placeholder='check condition'
+                name="rhs"
+                type="text"
+                value={step.checkCondition?.rhs}
+                onChange={handleCheckConditionChange}
+                fullWidth
+              />
+            </Grid>
           </Grid>
 
           {/* References Grid */}
@@ -341,7 +342,7 @@ const StepBoxPopup = ({ open, handleClose, onSubmit, initialData, isEdit, allFil
                 {step.references.map((reference, index) => (
                   <li key={index} className="stepItem">
                     <span className="stepName">
-                      {`${reference?.referenceUrl}` || `Reference ${index + 1}`}
+                      {`${Object.keys(reference)[0]} - ${Object.values(reference)[0]}` || `Reference ${index + 1}`}
                     </span>
                     <div className="stepReference">
                       <Tooltip title="Edit">
@@ -365,6 +366,7 @@ const StepBoxPopup = ({ open, handleClose, onSubmit, initialData, isEdit, allFil
                 Add Reference
               </Button>
               <ReferencePopup
+                referenceFileData= {fileContentJSON}
                 stepType={step.stepType}
                 open={referencePopupOpen}
                 handleClose={handleCloseReferencePopup}
