@@ -105,10 +105,9 @@ const StepBoxPopup = ({ open, handleClose, onSubmit, initialData, isEdit, allFil
     stepName: '',
     stepType: '',
     useLabel: '',
+    checkCondition: { rhs: '', lhs: '', operator: '' },
     references: []
   });
-
-  
 
   useEffect(() => {
     if (isEdit && normalizedInitialData) {
@@ -119,6 +118,7 @@ const StepBoxPopup = ({ open, handleClose, onSubmit, initialData, isEdit, allFil
         stepName: '',
         stepType: '',
         useLabel: '',
+        checkCondition: {rhs: '', lhs: '', operator: ''},
         references: []
       });
     }
@@ -127,6 +127,11 @@ const StepBoxPopup = ({ open, handleClose, onSubmit, initialData, isEdit, allFil
   const handleChange = (e) => {
     setStep({ ...step, [e.target.name]: e.target.value });
   };
+
+  const handleCheckConditionChange = (e) => {
+    const {name, value} = e.target
+    setStep({...step, checkCondition:{...step.checkCondition, [name]: value}})
+  }
 
   const removeReference = (index) => {
     const updatedReferences = step.references.filter((_, i) => i !== index);
@@ -228,9 +233,13 @@ const StepBoxPopup = ({ open, handleClose, onSubmit, initialData, isEdit, allFil
         />
         <form onSubmit={handleSubmit}>
           <Grid container direction="row" spacing={2} style={{ paddingLeft: '2%', paddingBottom: '20px' }}>
-            <Grid item xs={12} md={10}>
+            <Grid item xs={12} md={4}>
+              <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
+                Step Name
+                <span style={{ color: 'red' }}>*</span>
+              </div>
               <TextField
-                label="Step Name"
+                placeholder='Enter step name'
                 name="stepName"
                 type="text"
                 value={step.stepName}
@@ -238,7 +247,7 @@ const StepBoxPopup = ({ open, handleClose, onSubmit, initialData, isEdit, allFil
                 fullWidth
               />
             </Grid>
-            <Grid item xs={12} md={4} ls={4} xl={6}>
+            <Grid item xs={6} md={4} ls={4} xl={4}>
               <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
                 Step Type
                 <span style={{ color: 'red' }}>*</span>
@@ -246,6 +255,7 @@ const StepBoxPopup = ({ open, handleClose, onSubmit, initialData, isEdit, allFil
               <TextField
                 select
                 name="stepType"
+                label='Select Type'
                 placeholder='Select Step Type'
                 style={{ width: '300px' }}
                 value={step.stepType}
@@ -256,20 +266,62 @@ const StepBoxPopup = ({ open, handleClose, onSubmit, initialData, isEdit, allFil
                 ))}
               </TextField>
             </Grid>
-            <Grid item xs={12} md={4} ls={4} xl={6}>
+            <Grid item xs={6} md={4} ls={4} xl={4}>
               <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
                 Label
               </div>
               <TextField
                 select
                 name="useLabel"
-                placeholder='Select Label'
+                label='Select Label'
                 style={{ width: '300px' }}
                 value={step.useLabel}
                 onChange={handleChange}
               >
-                <MenuItem key='CarrierGo' value='CarrierGo'> CarrierGo </MenuItem>
-                <MenuItem key='Logistics' value='Logistics'> Logistics </MenuItem>
+                <MenuItem key='carrierGo' value='carrierGo'> CarrierGo </MenuItem>
+                <MenuItem key='logistics' value='logistics'> Logistics </MenuItem>
+              </TextField>
+            </Grid>
+            <Grid item xs={6} md={4} ls={4} xl={4}>
+              <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
+                RHS
+              </div>
+              <TextField
+                placeholder='check condition'
+                name="rhs"
+                type="text"
+                value={step.checkCondition?.rhs}
+                onChange={handleCheckConditionChange}
+                fullWidth
+              />
+            </Grid>
+            <Grid item xs={6} md={4} ls={4} xl={4}>
+              <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
+                LHS
+              </div>
+              <TextField
+                placeholder='check conditions'
+                name="lhs"
+                type="text"
+                value={step.checkCondition?.lhs}
+                onChange={handleCheckConditionChange}
+                fullWidth
+              />
+            </Grid>
+            <Grid item xs={6} md={4} ls={4} xl={4}>
+              <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
+                Operator
+              </div>
+              <TextField
+                select
+                name="operator"
+                label='check conditions'
+                style={{ width: '300px' }}
+                value={step.checkCondition?.operator}
+                onChange={handleCheckConditionChange}
+              >
+                <MenuItem key='equals' value='equals'> Equals </MenuItem>
+                <MenuItem key='notEquals' value='notEquals'> Not Equals </MenuItem>
               </TextField>
             </Grid>
           </Grid>
@@ -289,7 +341,7 @@ const StepBoxPopup = ({ open, handleClose, onSubmit, initialData, isEdit, allFil
                 {step.references.map((reference, index) => (
                   <li key={index} className="stepItem">
                     <span className="stepName">
-                      {`${reference?.referenceType} - ${reference?.referenceUrl}` || `Reference ${index + 1}`}
+                      {`${reference?.referenceUrl}` || `Reference ${index + 1}`}
                     </span>
                     <div className="stepReference">
                       <Tooltip title="Edit">
@@ -324,7 +376,7 @@ const StepBoxPopup = ({ open, handleClose, onSubmit, initialData, isEdit, allFil
             </Grid>
           </Grid>
           <Grid item xs={12}>
-            <Button type="submit" variant="contained" color="primary">
+            <Button type="submit" onClick={handleSubmit} variant="contained" color="primary">
               {isEdit ? "Update Step" : "Save Step"}
             </Button>
           </Grid>

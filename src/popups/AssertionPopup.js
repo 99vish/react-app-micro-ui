@@ -209,7 +209,7 @@ const AssertionPopup = ({ stepType, open, handleClose, onSubmit, initialData, is
               <TextField
                 select
                 name="operator"
-                placeholder='Select Operator'
+                label='Select Operator'
                 fullWidth
                 value={assertion.operator}
                 onChange={handleChange}
@@ -222,7 +222,7 @@ const AssertionPopup = ({ stepType, open, handleClose, onSubmit, initialData, is
             <Grid item xs={12} md={4} ls={4} xl={4}>
               <div style={{ paddingTop: '10px' }}>
                 Value
-                {assertion.key[2] && <span style={{ color: 'red' }}>*</span>}
+                {assertion?.key[2]==='TEXT' && <span style={{ color: 'red' }}>*</span>}
               </div>
               <TextField
                 margin='dense'
@@ -231,7 +231,7 @@ const AssertionPopup = ({ stepType, open, handleClose, onSubmit, initialData, is
                 fullWidth
                 id='outputKey1'
                 type='text'
-                required={assertion.key[2]}
+                required={assertion?.key[2]==='TEXT'}
                 onChange={handleChange}
                 value={assertion.value}
                 variant='outlined'

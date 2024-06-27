@@ -1,17 +1,15 @@
 import { TextField, Button, Grid, makeStyles } from '@material-ui/core';
 import React, { act, useEffect, useState } from "react";
 import HeaderDivider from '../components/headerWithDivider';
-import { STEP_TYPE_OPTIONS, ACTION_TYPE_OPTIONS, OBJECTS_OPTIONS, SELECTOR_TYPE_OPTIONS } from '../constants/constants';
+import { STEP_TYPE_OPTIONS } from '../constants/constants';
 import { Autocomplete, MenuItem, IconButton, Tooltip } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ActionPopup from '../popups/ActionPopup';
 import { useLocation } from 'react-router-dom';
-import AddIcon from '@mui/icons-material/Add';
 import AssertionBoxPopup from '../popups/AssertionPopup';
 import OutputVariablePopup from '../popups/OutputVariablePopup';
 import InputVariablePopup from '../popups/InputVariablePopup';
-import { Refresh } from '@mui/icons-material';
 import { REQUEST_TYPE } from '../constants/constants';
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -604,7 +602,7 @@ export default function AddRule(props) {
         <HeaderDivider
           title={
             <div style={{ display: 'flex' }}>
-              <h3 className={classes.headerStyle}>Output Variables</h3>
+              <h3 className={classes.headerStyle}>HTTP Request Details</h3>
             </div>
           }
         />

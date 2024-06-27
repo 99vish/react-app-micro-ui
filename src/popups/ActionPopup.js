@@ -4,6 +4,7 @@ import Autocomplete from '@mui/lab/Autocomplete';
 import CloseIcon from '@mui/icons-material/Close';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { ALL_OBJECTS } from '../constants/allObjects';
+import { parsedObject } from '../constants/singleSourceString';
 import { ACTION_TYPE_OPTIONS } from '../constants/constants';
 
 const style = {
@@ -23,8 +24,6 @@ const ActionPopup = ({ open, params, handleClose, onSubmit, initialData, isEdit 
   const [action, setAction] = useState({})
   const [currentKey, setCurrentKey] = useState()
   const [otherValues, setOtherValues] = useState(false)
-  //const [initialKey, setInitialKey] = useState(Object.keys(initialData)[0])
-  let initialValues = []
 
   useEffect(() => {
     if (isEdit && initialData) {
@@ -48,7 +47,7 @@ const ActionPopup = ({ open, params, handleClose, onSubmit, initialData, isEdit 
     setAction((prevAction) => {
       let key = Object.keys(action)[0]
       let prevVal = prevAction[key]
-      let newObject = { [value]: prevVal ? prevVal : key === "url" || key == "keyPress" ? "" : [] }
+      let newObject = { [value]: prevVal ? prevVal : key === "url" || key === "keyPress" ? "" : [] }
       setCurrentKey(value)
       return newObject
     })

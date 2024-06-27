@@ -127,3 +127,18 @@ export const ALL_OBJECTS = [
     'tog_getValuebyLabel',
     'alert_byDiv'
 ]
+
+export const new_Objects =
+[
+    {"any_byText": "//*[contains(translate(text(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), translate('${elementName}', 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'))]"},
+    {"any_byId": "//*[@id[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), translate('${elementName}', 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'))]]"},
+    {"any_byClass": "//*[contains(@class, '${elementName}')"},
+    {"any_byXpath": "//${elementName}"},
+    {"any_byName": "//*[@name='${elementName}']"},
+    {"any_byLinkText": "//a[contains(text(),'${elementName}')]"},
+    {"any_byPartialLinkText": "//a[contains(text(),'${elementName}') and contains(text(),'${partialText}')]"},
+    {"any_byTagName": "//*[@tag='${elementName}']"},
+    {"any_byCss": "css=${elementName}"}
+]
+
+
