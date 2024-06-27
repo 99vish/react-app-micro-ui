@@ -3,7 +3,6 @@ import { Box, Button, TextField, Modal, Typography, Grid, IconButton, Tooltip, M
 import Autocomplete from '@mui/lab/Autocomplete';
 import CloseIcon from '@mui/icons-material/Close';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { ALL_OBJECTS } from '../constants/allObjects';
 import { parsedObject } from '../constants/singleSourceString';
 import { ACTION_TYPE_OPTIONS } from '../constants/constants';
 
@@ -24,7 +23,7 @@ const ActionPopup = ({ open, params, handleClose, onSubmit, initialData, isEdit 
   const [action, setAction] = useState({})
   const [currentKey, setCurrentKey] = useState()
   const [otherValues, setOtherValues] = useState(false)
-
+  const ALL_OBJECTS = Object.keys(parsedObject)
   useEffect(() => {
     if (isEdit && initialData) {
       if (initialData) {
@@ -270,6 +269,7 @@ const ActionPopup = ({ open, params, handleClose, onSubmit, initialData, isEdit 
                   />
                 </Grid>}
             </Grid>
+            {parsedObject[Object?.values(action)?.[0]?.[0] ?? ""]}
             <Grid container xs={12} style={{paddingTop: '2%'}}>
               <Button type="submit" onClick={handleSubmit} variant="contained" color="primary">
                 {isEdit ? "Update Action" : "Save Action"}

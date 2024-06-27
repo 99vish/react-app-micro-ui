@@ -151,7 +151,7 @@ const OutputVariablePopup = ({ stepType, open, handleClose, onSubmit, initialDat
             <Grid item xs={12} md={6} ls={6} xl={6}>
               <div>
                 Key
-                {stepType === 'UI' ? (outputVariable.key.map((keyData, index) => (
+                {Array.isArray(outputVariable.key) ? (outputVariable.key.map((keyData, index) => (
                   <Grid container alignItems="center" key={index}>
                     <Grid item>
                       <TextField

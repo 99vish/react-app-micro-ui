@@ -116,7 +116,7 @@ function generateDirectoryStructure(filePaths) {
 
 
 
-const ReferencePopup = ({ stepType, open, handleClose, onSubmit, initialData, isEdit, allFiles }) => {
+const ReferencePopup = ({ referenceFileData, stepType, open, handleClose, onSubmit, initialData, isEdit, allFiles }) => {
 
   const classes = useStyles();
 
@@ -153,14 +153,16 @@ const ReferencePopup = ({ stepType, open, handleClose, onSubmit, initialData, is
   };
 
   const populateFileContent = (initialData) => {
-    const jsonRef = initialData.referenceUrl; // Path from normalizedInitialData      
+    console.log(initialData)
+    const jsonRef = Object.keys(initialData)[0]['jsonRef']; // Path from normalizedInitialData      
+    console.log(jsonRef)
     const file = allFiles.find(file => normalizePath(file.filePath).includes(normalizePath(jsonRef)));
-
-    if (file) {
-      let fileContentJSON = JSON.parse(file.fileContent)
+    console.log(file)
+    if (true) {
+      // let fileContentJSON = JSON.parse(file.fileContent)
       initialData = {
         ...initialData,
-        ...fileContentJSON
+        ...referenceFileData
       }
       console.log(initialData)
       setReference(initialData)
@@ -175,8 +177,9 @@ const ReferencePopup = ({ stepType, open, handleClose, onSubmit, initialData, is
 
   useEffect(() => {
     if (isEdit && initialData) {
-      initialData.referenceType === 'jsonRef' ? populateFileContent(initialData) : setReference(initialData);
       console.log(initialData)
+      console.log(referenceFileData)
+      Object.keys(initialData)[0] === 'jsonRef' ? populateFileContent(initialData) : setReference(initialData);
     }
   }, [isEdit, initialData, open]);
 
@@ -344,90 +347,52 @@ const ReferencePopup = ({ stepType, open, handleClose, onSubmit, initialData, is
     onSubmit(reference);
     handleClose();
   };
-  
-  
-   const handleSaveOutputVariable = (selectedOutputVariable) => {
-      if (isOutputVariableEdit) {
-        const updatedOutputVariables = [...reference.outputVariables];
-        updatedOutputVariables[currentOutputVariableIndex] = selectedOutputVariable;
-        setReference({ ...reference, outputVariables: updatedOutputVariables });
-      }
-      else {
-        setReference((prevRef) => ({
-          ...prevRef,
-          outputVariables: prevRef.outputVariables ? [...prevRef.outputVariables, selectedOutputVariable] : [selectedOutputVariable]
-        }))
-      }
-      handleCloseOutputVariableBox();
-    };
-
-    const handleOutputVariableEditButtonClick = (index) => {
-      const outputVariableToEdit = reference.outputVariables[index];
-      if (outputVariableToEdit) {
-        setCurrentOutputVariableIndex(index);
-        setIsOutputVariableEdit(true);
-        setOutputVariablePopupOpen(true)
-      }
-    };
-
-    const handleCloseOutputVariableBox = () => {
-      setOutputVariablePopupOpen(false);
-      setIsOutputVariableEdit(false);
-      setCurrentOutputVariableIndex(null);
-    };
 
 
+  const saveAsJson = async () => {
 
-    const handleSubmit = (e) => {
-      e.preventDefault();
-      onSubmit(reference);
-      handleClose();
-    };
+    // Create a JSON string
+    const jsonString = JSON.stringify(reference, null, 2);
 
-    const saveAsJson = async () => {
+    try {
+      const handle = await window.showSaveFilePicker();
+      const writableStream = await handle.createWritable();
 
-      // Create a JSON string
-      const jsonString = JSON.stringify(reference, null, 2);
-  
-      try {
-        const handle = await window.showSaveFilePicker();
-        const writableStream = await handle.createWritable();
-  
-        // Write the JSON string to the writable stream
-        await writableStream.write(jsonString);
-  
-        // Close the writable stream
-        await writableStream.close();
-      } catch (err) {
-        console.error('Error saving file:', err);
-      }
-  
-    };
-  
-  
-    const saveJson = async () => {
-      const jsonString = JSON.stringify(reference, null, 2);
-  
-      // Convert JSON string to a Blob
-      const blob = new Blob([jsonString], { type: 'application/json' });
-  
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-  
-      // Set attributes for download dialog
-      link.setAttribute('download', "reference.hbs");
-      link.style.display = 'none';
-  
-      // Append the link to the body
-      document.body.appendChild(link);
-  
-      // Trigger the click event to open the save dialog
-      link.click();
-  
-      // Clean up
-      document.body.removeChild(link);
-      URL.revokeObjectURL(link.href);
-    };
+      // Write the JSON string to the writable stream
+      await writableStream.write(jsonString);
+
+      // Close the writable stream
+      await writableStream.close();
+    } catch (err) {
+      console.error('Error saving file:', err);
+    }
+
+  };
+
+
+  const generateJson = async () => {
+    const jsonString = JSON.stringify(reference, null, 2);
+
+    // Convert JSON string to a Blob
+    const blob = new Blob([jsonString], { type: 'application/json' });
+
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+
+    // Set attributes for download dialog
+    link.setAttribute('download', "reference.hbs");
+    link.style.display = 'none';
+
+    // Append the link to the body
+    document.body.appendChild(link);
+
+    // Trigger the click event to open the save dialog
+    link.click();
+
+    // Clean up
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
+  };
 
   // const renderTree = (nodes, path = '') => {
   //   return Object.keys(nodes).map((key) => {
@@ -466,33 +431,33 @@ const ReferencePopup = ({ stepType, open, handleClose, onSubmit, initialData, is
             <CloseIcon />
           </IconButton>
         </div>
-          <Grid container justifyContent="space-between" >
-            
-            <Grid container direction="row" spacing={2} className={classes.stickToTop}>
-              
-            <Typography id="modal-title" className='heading' style={{paddingRight: '28.5%'}}>
+        <Grid container justifyContent="space-between" >
+
+          <Grid container direction="row" spacing={2} className={classes.stickToTop}>
+
+            <Typography id="modal-title" className='heading' style={{ paddingRight: '20%' }}>
               {isEdit ? <h3>Edit Reference</h3> : <h3>Add Reference</h3>}
             </Typography>
-            
-              <Grid item style={{ marginleft: '2%' }}>
-                <Button
-                  variant="contained" color="primary" className="button"
-                  onClick={saveJson}
-                >
-                  Save
-                </Button>
-              </Grid>
-              <Grid item style={{ marginleft: '2%' }}>
-                <Button
-                  variant="contained" color="primary" className="button"
-                  onClick={saveAsJson}
-                >
-                  Save As
-                </Button>
-              </Grid>
+
+            <Grid item style={{ marginleft: '2%' }}>
+              <Button
+                variant="contained" color="primary" className="button"
+                onClick={generateJson}
+              >
+                generate json
+              </Button>
             </Grid>
-            
+            <Grid item style={{ marginleft: '2%' }}>
+              <Button
+                variant="contained" color="primary" className="button"
+                onClick={saveAsJson}
+              >
+                Save As
+              </Button>
+            </Grid>
           </Grid>
+
+        </Grid>
         <HeaderDivider
           title={
             <div style={{ display: 'flex' }}>
@@ -643,6 +608,55 @@ const ReferencePopup = ({ stepType, open, handleClose, onSubmit, initialData, is
             </Grid>
           </>}
 
+          {/* Actions Grid  */}
+          {stepType === 'UI' &&
+            <Grid className='reference-grid' container direction="row" style={{ paddingBottom: '5px' }}>
+              <HeaderDivider
+                title={
+                  <div style={{ display: 'flex' }}>
+                    <h3 className={classes.headerStyle}>Actions</h3>
+                  </div>
+                }
+              />
+              <Grid container direction="row" style={{ paddingLeft: '2%', paddingBottom: '20px' }}>
+                <ul className='listItem'>
+                  {reference?.actions && reference.actions.map((action, index) => (
+                    <li key={index} className="stepItem">
+                      <span className={classes.actionName}>{`Action ${index + 1} --- ${Object.keys(action)[0]}`}</span>
+                      <div className='stepActions'>
+                        <Tooltip title="Edit">
+                          <IconButton onClick={() => handleEditButtonClick(index)}>
+                            <EditIcon />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Delete">
+                          <IconButton onClick={() => removeItem('actions', index)}>
+                            <DeleteIcon />
+                          </IconButton>
+                        </Tooltip>
+                      </div>
+                    </li>
+
+                  ))}
+                </ul>
+                <Button
+                  variant="contained" color="primary" className="button"
+                  onClick={() => setActionPopupOpen(true)}
+                >
+                  Add Action
+                </Button>
+              </Grid>
+              <ActionPopup
+                open={actionPopupOpen}
+                openParams={params}
+                handleClose={handleClosePopup}
+                onSubmit={handleSaveAction}
+                initialData={isActionEdit ? reference.actions[currentActionIndex] : null}
+                isEdit={isActionEdit}
+              />
+            </Grid>
+          }
+
           {/* Input Variables Grid */}
           {stepType === "UI" && <>
             <Grid className='reference-grid' container direction="row" style={{ paddingBottom: '5px', paddingTop: '20px' }}>
@@ -778,7 +792,7 @@ const ReferencePopup = ({ stepType, open, handleClose, onSubmit, initialData, is
                 className="add-step-button"
                 onClick={() => setOutputVariablePopupOpen(true)}
               >
-                Add Output Variables
+                Add Output Variable
               </Button>
               <OutputVariablePopup
                 stepType={stepType}
@@ -793,7 +807,7 @@ const ReferencePopup = ({ stepType, open, handleClose, onSubmit, initialData, is
 
           <Grid item xs={12}>
             <Button type="submit" onClick={handleSubmit} variant="contained" color="primary">
-              {isEdit ? "Update Reference" : "Save Reference"}
+              {isEdit ? "Update Reference" : "Add Reference"}
             </Button>
           </Grid>
         </form>
