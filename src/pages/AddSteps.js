@@ -1,8 +1,7 @@
 import { TextField, Button, Grid, makeStyles, Typography } from '@material-ui/core';
 import React, { useEffect, useState } from "react";
 import HeaderDivider from '../components/headerWithDivider';
-import { STEP_TYPE_OPTIONS, ACTION_TYPE_OPTIONS, OBJECTS_OPTIONS, SELECTOR_TYPE_OPTIONS } from '../constants/constants';
-import { Autocomplete, MenuItem, IconButton, Tooltip } from '@mui/material';
+import { IconButton, Tooltip } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import StepBoxPopup from '../popups/StepBoxPopup';
@@ -10,7 +9,7 @@ import { useLocation } from 'react-router-dom';
 import HookPopup from '../popups/HookPopup';
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
-import { BorderBottom } from '@mui/icons-material';
+import { parsedObject } from '../constants/singleSourceString';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -46,8 +45,6 @@ const useStyles = makeStyles((theme) => ({
   hooksContainer: {
     paddingLeft: '20px',
     paddingRight: '20px',
-    // paddingTop: '10px',
-    // paddingBottom: '10px'
   },
   hookList: {
     listStyleType: 'none',
@@ -66,13 +63,6 @@ const useStyles = makeStyles((theme) => ({
     marginTop: "10px",
     textTransform: "none",
   },
-  // display: flex;
-  //   justify-content: space-between;
-  //   align-items: center;
-  //   padding: 10px 10px;
-  //   border-bottom: 1px solid #ddd;
-  //   width: 100%;
-  //   list-style-type: none;
   sectionHeader: {
     display: "flex",
     justifyContent: "space-between",
@@ -132,7 +122,7 @@ export default function AddSteps(props) {
   const { fileData, allFiles } = location.state;
 
   console.log(JSON.parse(fileData.fileContent).beforeAll);
-
+  console.log(parsedObject['any_byName'])
 
   const [stepBoxOpen, setStepBoxOpen] = useState(false)
   const [currentStepIndex, setCurrentStepIndex] = useState(null);
@@ -141,13 +131,13 @@ export default function AddSteps(props) {
   const [currentHookIndex, setCurrentHookIndex] = useState(null);
   const [currentHookType, setCurrentHookType] = useState(null);
   const [formData, setFormData] = useState(JSON.parse(fileData.fileContent) || {
-  scenarioName: '',
-  tags: '',
-  dataSource: {
-    filepath: '',
-    rowId: ''
-  },
-  steps: []
+    scenarioName: '',
+    tags: '',
+    dataSource: {
+      filepath: '',
+      rowId: ''
+    },
+    steps: []
   });
 
   // State to manage expanded hooks
@@ -166,10 +156,11 @@ export default function AddSteps(props) {
     }));
   };
 
-  
+
   useEffect(() => {
     if (fileData) {
       setFormData(JSON.parse(fileData.fileContent));
+      console.log(fileData)
     }
   }, [fileData]);
 
@@ -197,6 +188,7 @@ export default function AddSteps(props) {
     }
   };
 
+  const [isGridVisible, setIsGridVisible] = useState(true)
 
   const removeStep = (index) => {
     const steps = formData.steps.filter((_, i) => i !== index);
@@ -215,7 +207,12 @@ export default function AddSteps(props) {
       updatedSteps[currentStepIndex] = selectedStep;
       setFormData({ ...formData, steps: updatedSteps });
     } else {
-      setFormData({ ...formData, steps: [...formData.steps, selectedStep] });
+      const step = formData.steps.length +1
+      const updatedStep = {
+        step,
+        ...selectedStep
+      }
+      setFormData({ ...formData, steps: [...formData.steps, updatedStep] });
     }
     handleCloseStepBox();
   };
@@ -257,14 +254,14 @@ export default function AddSteps(props) {
       await writableStream.write(jsonString);
       await writableStream.close();
     } catch (err) {
-        console.error('Error saving file:', err);
+      console.error('Error saving file:', err);
     }
 
   };
 
   const saveJson = async () => {
     const jsonString = JSON.stringify(formData, null, 2);
-    const blob = new Blob([jsonString], { type: 'application/json' });    
+    const blob = new Blob([jsonString], { type: 'application/json' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
     link.setAttribute('download', `${fileData.fileName}`);
@@ -275,13 +272,16 @@ export default function AddSteps(props) {
     URL.revokeObjectURL(link.href);
   };
 
+  // Function to toggle section expansion
+
+
   return (
     <Grid container style={{ backgroundColor: "#fff" }}>
       <Grid container direction="row" className={classes.cardGrid}>
         <div style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
           <h5 className='heading'> Scenario Information </h5>
           <Grid container direction="row-reverse" spacing={2} className={classes.stickToTop}>
-          <Grid item style={{ marginleft: '2%' }}>
+            <Grid item style={{ marginleft: '2%' }}>
               <Button
                 variant="contained" color="primary" className={classes.button}
                 onClick={saveJson}
@@ -465,7 +465,7 @@ export default function AddSteps(props) {
             <ul className='listItem'>
               {formData.steps.map((step, index) => (
                 <li key={index} className="stepItem">
-                  <span className="stepName">{`${step.stepName} - (${step.stepType})` || `Step ${index + 1}`}</span>
+                  <span className="stepName">{`${index + 1}. ${step.stepName} - (${step.stepType})` || `Step ${index + 1}`}</span>
                   <div className='stepReferences'>
                     <Tooltip title="Edit">
                       <IconButton
