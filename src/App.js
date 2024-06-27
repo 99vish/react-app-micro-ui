@@ -1,11 +1,11 @@
 import React from 'react';
-//import './styles.css';
+import './styles.css';
 import AddSteps from './pages/AddSteps.js'
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import AddRef from './pages/AddRef.js';
 import LandingPage from './LandingPage.js';
-import FileTree from './FileTree.js';
-import './newStyles.css';
+// import FileTree from './FileTree.js';
+// import './newStyles.css';
 
 const fileStructure = {
     "C:": {
@@ -207,19 +207,19 @@ const fileStructure = {
 const App = () => {
     return (
 
-        <div>
-      <h1>File Structure</h1>
-      <FileTree data={fileStructure} />
-    </div>
-        // <Router>
-        //     <div>
-        //         <Routes>
-        //             <Route path="/add-steps" element={<AddSteps />} />
-        //             <Route path="/add-ref" element={<AddRef />} />
-        //             <Route path="/"  element={<LandingPage />} />
-        //         </Routes>
-        //     </div>
-        // </Router>
+    //     <div>
+    //   <h1>File Structure</h1>
+    //   <FileTree data={fileStructure} />
+    // </div>
+        <Router>
+            <div>
+                <Routes>
+                    <Route path="/add-steps" element={<AddSteps />} />
+                    <Route path="/add-ref" element={<AddRef />} />
+                    <Route path="/"  element={<LandingPage />} />
+                </Routes>
+            </div>
+        </Router>
     );
 };
 
