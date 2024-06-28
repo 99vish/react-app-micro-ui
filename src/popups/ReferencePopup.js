@@ -3,13 +3,16 @@ import { Box, Button, TextField, Modal, Typography, Grid, IconButton, MenuItem, 
 import DeleteIcon from '@mui/icons-material/Delete';
 import { REQUEST_TYPE } from '../constants/constants';
 import HeaderDivider from '../components/headerWithDivider';
-import { makeStyles } from '@material-ui/core';
+import { Collapse, makeStyles } from '@material-ui/core';
 import CloseIcon from '@mui/icons-material/Close';
 import OutputVariablePopup from './OutputVariablePopup';
 import InputVariablePopup from './InputVariablePopup';
 import AssertionBoxPopup from '../popups/AssertionPopup';
 import EditIcon from '@mui/icons-material/Edit';
 import ActionPopup from './ActionPopup';
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import ExpandLessIcon from "@mui/icons-material/ExpandLess";
+
 
 const style = {
   position: 'absolute',
@@ -43,7 +46,8 @@ const useStyles = makeStyles((theme) => ({
   headerStyle: {
     marginTop: '0px',
     fontSize: '18px',
-    fontWeight: '600'
+    fontWeight: '600',
+    cursor: "pointer"
   },
   stickToTop: {
     padding: '1% 2% 1% 2%',
@@ -144,6 +148,26 @@ const ReferencePopup = ({ referenceFileData, stepType, open, handleClose, onSubm
   const [isOutputVariableEdit, setIsOutputVariableEdit] = useState(false);
   const [currentOutputVariableIndex, setCurrentOutputVariableIndex] = useState(null);
 
+  const [expandedSection, setExpandedSection] = useState({
+    generalInfo: true,
+    actionsInfo: true,
+    inputVariablesInfo: true,
+    outputVariablesInfo: true,
+    assertionsInfo: true,
+    httpRequestInfo: true,
+    queryParamsInfo: true,
+    // Add other sections here as needed
+  });
+
+
+
+  const toggleSection = (section) => {
+    setExpandedSection(prevState => ({
+      ...prevState,
+      [section]: !prevState[section],
+    }));
+  };
+
   const normalizePath = (path) => {
     if (path) {
       return path.replace(/\\/g, '/'); // Convert all backslashes to forward slashes
@@ -159,7 +183,7 @@ const ReferencePopup = ({ referenceFileData, stepType, open, handleClose, onSubm
     const file = allFiles.find(file => normalizePath(file.filePath).includes(normalizePath(jsonRef)));
     console.log(file)
     if (true) {
-      // let fileContentJSON = JSON.parse(file.fileContent)
+
       initialData = {
         ...initialData,
         ...referenceFileData
@@ -350,18 +374,11 @@ const ReferencePopup = ({ referenceFileData, stepType, open, handleClose, onSubm
 
 
   const saveAsJson = async () => {
-
-    // Create a JSON string
     const jsonString = JSON.stringify(reference, null, 2);
-
     try {
       const handle = await window.showSaveFilePicker();
       const writableStream = await handle.createWritable();
-
-      // Write the JSON string to the writable stream
       await writableStream.write(jsonString);
-
-      // Close the writable stream
       await writableStream.close();
     } catch (err) {
       console.error('Error saving file:', err);
@@ -372,24 +389,13 @@ const ReferencePopup = ({ referenceFileData, stepType, open, handleClose, onSubm
 
   const generateJson = async () => {
     const jsonString = JSON.stringify(reference, null, 2);
-
-    // Convert JSON string to a Blob
     const blob = new Blob([jsonString], { type: 'application/json' });
-
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-
-    // Set attributes for download dialog
     link.setAttribute('download', "reference.hbs");
     link.style.display = 'none';
-
-    // Append the link to the body
     document.body.appendChild(link);
-
-    // Trigger the click event to open the save dialog
     link.click();
-
-    // Clean up
     document.body.removeChild(link);
     URL.revokeObjectURL(link.href);
   };
@@ -458,61 +464,81 @@ const ReferencePopup = ({ referenceFileData, stepType, open, handleClose, onSubm
           </Grid>
 
         </Grid>
-        <HeaderDivider
-          title={
-            <div style={{ display: 'flex' }}>
-              <h3 className={classes.headerStyle}>Reference Information</h3>
+
+        <Grid container >
+          <div style={{ display: 'flex', alignItems: 'center', width: '100%' }} onClick={() => toggleSection('generalInfo')}>
+            <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center' , marginTop:'0px'}}>
+              <IconButton >
+                {expandedSection.generalInfo ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+              </IconButton>
             </div>
-          }
-        />
+            <HeaderDivider
+              title={ 
+                <h3 className={classes.headerStyle}>General Information</h3>               
+              }
+            />
+          </div>
+        </Grid>
         <form onSubmit={handleSubmit}>
-          <Grid container direction="row" spacing={2} style={{ paddingLeft: '2%', paddingBottom: '20px' }}>
-            <Grid item xs={12} md={6}>
-              <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
-                ReferenceType
-                <span style={{ color: 'red' }}>*</span>
-              </div>
-              <TextField
-                select
-                name="referenceType"
-                label='Select Type'
-                style={{ width: '300px' }}
-                value={Object.keys(reference)[0]}
-                onChange={handleRefTypeChange}
-              >
-                <MenuItem key='funcRef' value='funcRef'> Functional Reference </MenuItem>
-                <MenuItem key='jsonRef' value='jsonRef'> JSON Reference </MenuItem>
-              </TextField>
-            </Grid>
-            <Grid item xs={12} md={6} ls={6} xl={6}>
-              <div style={{ paddingTop: '5px' }}>
-                FilePath
-                <span style={{ color: 'red' }}>*</span>
-              </div>
-              <TextField
-                margin='dense'
-                name='referenceUrl'
-                type='text'
-                variant='outlined'
-                id="referenceFilePath"
-                onChange={handleFilePathChange}
-                value={reference.jsonRef || reference.funcRef}
-                placeholder="Enter FilePath"
-              />
-            </Grid>
-          </Grid>
 
-          {/* General Information Grid */}
+          <Collapse in={expandedSection.generalInfo} timeout="auto" unmountOnExit style={{ width: '100%' }}>
+            <Grid container direction="row" style={{ paddingLeft: '2%' }}>
+              <Grid item xs={12} md={6}>
+                <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
+                  ReferenceType
+                  <span style={{ color: 'red' }}>*</span>
+                </div>
+                <TextField
+                  select
+                  name="referenceType"
+                  label='Select Type'
+                  style={{ width: '300px' }}
+                  value={Object.keys(reference)[0]}
+                  onChange={handleRefTypeChange}
+                >
+                  <MenuItem key='funcRef' value='funcRef'> Functional Reference </MenuItem>
+                  <MenuItem key='jsonRef' value='jsonRef'> JSON Reference </MenuItem>
+                </TextField>
+              </Grid>
+              <Grid item xs={12} md={6} ls={6} xl={6}>
+                <div style={{ paddingTop: '5px' }}>
+                  FilePath
+                  <span style={{ color: 'red' }}>*</span>
+                </div>
+                <TextField
+                  margin='dense'
+                  name='referenceUrl'
+                  type='text'
+                  variant='outlined'
+                  id="referenceFilePath"
+                  onChange={handleFilePathChange}
+                  value={reference.jsonRef || reference.funcRef}
+                  placeholder="Enter FilePath"
+                />
+              </Grid>
+            </Grid>
+          </Collapse>
 
+          {/* Http REquest Grid */}
+          
+         
           {stepType === "API" && <>
-            <Grid container>
-              <HeaderDivider
-                title={
-                  <div style={{ display: 'flex' }}>
-                    <h3 className={classes.headerStyle}>HTTP Request Details</h3>
-                  </div>
-                }
-              />
+            
+            <Grid container style={{ marginBottom: '2%' }}>
+              <div style={{ display: 'flex', alignItems: 'center', width: '100%' }} onClick={() => toggleSection('httpRequestInfo')}>
+                <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center' , marginTop:'0px'}}>
+                  <IconButton >
+                    {expandedSection.httpRequestInfo ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                  </IconButton>
+                </div>
+                <HeaderDivider
+                  title={ 
+                    <h3 className={classes.headerStyle}>HTTP Request Details</h3>               
+                  }
+                />
+              </div>
+            </Grid>
+            <Collapse in={expandedSection.generalInfo} timeout="auto" unmountOnExit style={{ width: '100%' }}>
               <Grid container direction="row" style={{ paddingLeft: '2%', paddingBottom: '20px' }}>
                 <Grid item xs={4} md={2} ls={2} xl={2}>
                   <div style={{ paddingBottom: '8px', paddingTop: '10px' }}>
@@ -565,87 +591,105 @@ const ReferencePopup = ({ referenceFileData, stepType, open, handleClose, onSubm
                   />
                 </Grid>
               </Grid>
-            </Grid>
+            </Collapse>
+            
 
             {/* Query Params Grid */}
             <Grid className='reference-grid' container direction="row" style={{ paddingBottom: '5px', paddingTop: '20px' }}>
-              <HeaderDivider
-                title={
-                  <div style={{ display: 'flex' }}>
-                    <h3 className={classes.headerStyle}> Query Params</h3>
+              <Grid container style={{ marginBottom: '2%' }}>
+                <div style={{ display: 'flex', alignItems: 'center', width: '100%' }} onClick={() => toggleSection('queryParamsInfo')}>
+                  <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center' , marginTop:'0px'}}>
+                    <IconButton >
+                      {expandedSection.queryParamsInfo ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                    </IconButton>
                   </div>
-                }
-              />
-              <Grid container direction="row" style={{ paddingLeft: '2%', paddingBottom: '20px' }}>
-                <Grid item xs={12}>
-                  {reference?.queryParams && Object.keys(reference.queryParams).length > 0 ? (
-                    <Button
-                      variant="contained"
-                      color="primary"
-                      onClick={() => handleOpenInputVariablePopup('queryParams')}
-                    >
-                      Edit QueryParams
-                    </Button>
-                  ) : (
-                    <Button
-                      variant="contained"
-                      color="primary"
-                      onClick={handleOpenInputVariablePopup}
-                    >
-                      Add QueryParams
-                    </Button>
-                  )}
-                </Grid>
-                <InputVariablePopup
-                  stepType={stepType}
-                  open={inputVariablePopupOpen}
-                  handleClose={handleCloseInputVariablePopup}
-                  onSave={handleSaveQueryParams}
-                  initialData={isInputVariableEdit ? reference?.inputVariables : null}
-                  isEdit={isInputVariableEdit}
-                />
+                  <HeaderDivider
+                    title={ 
+                      <h3 className={classes.headerStyle}>HTTP Request Details</h3>               
+                    }
+                  />
+                </div>
               </Grid>
+              <Collapse in={expandedSection.queryParamsInfo} timeout="auto" unmountOnExit style={{ width: '100%' }}>
+                <Grid container direction="row" style={{ paddingLeft: '2%', paddingBottom: '20px' }}>
+                  <Grid item xs={12}>
+                    {reference?.queryParams && Object.keys(reference.queryParams).length > 0 ? (
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={() => handleOpenInputVariablePopup('queryParams')}
+                      >
+                        Edit QueryParams
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={handleOpenInputVariablePopup}
+                      >
+                        Add QueryParams
+                      </Button>
+                    )}
+                  </Grid>
+                  <InputVariablePopup
+                    stepType={stepType}
+                    open={inputVariablePopupOpen}
+                    handleClose={handleCloseInputVariablePopup}
+                    onSave={handleSaveQueryParams}
+                    initialData={isInputVariableEdit ? reference?.queryParams : null}
+                    isEdit={isInputVariableEdit}
+                  />
+                </Grid>
+              </Collapse>
             </Grid>
           </>}
+          
 
           {/* Actions Grid  */}
           {stepType === 'UI' &&
-            <Grid className='reference-grid' container direction="row" style={{ paddingBottom: '5px' }}>
-              <HeaderDivider
-                title={
-                  <div style={{ display: 'flex' }}>
-                    <h3 className={classes.headerStyle}>Actions</h3>
-                  </div>
-                }
-              />
-              <Grid container direction="row" style={{ paddingLeft: '2%', paddingBottom: '20px' }}>
-                <ul className='listItem'>
-                  {reference?.actions && reference.actions.map((action, index) => (
-                    <li key={index} className="stepItem">
-                      <span className={classes.actionName}>{`Action ${index + 1} --- ${Object.keys(action)[0]}`}</span>
-                      <div className='stepActions'>
-                        <Tooltip title="Edit">
-                          <IconButton onClick={() => handleEditButtonClick(index)}>
-                            <EditIcon />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Delete">
-                          <IconButton onClick={() => removeItem('actions', index)}>
-                            <DeleteIcon />
-                          </IconButton>
-                        </Tooltip>
-                      </div>
-                    </li>
+            <Grid className='reference-grid' container direction="row" >
+              <div style={{ display: 'flex', alignItems: 'center', width: '100%' }} onClick={() => toggleSection('actionsInfo')}>
+                <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center' , marginTop:'0px'}}>
+                  <IconButton >
+                    {expandedSection.actionsInfo ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                  </IconButton>
+                </div>
+                <HeaderDivider
+                  title={ 
+                    <h3 className={classes.headerStyle}>Actions</h3>               
+                  }
+                />
+              </div>
+              <Collapse in={expandedSection.actionsInfo} timeout="auto" unmountOnExit style={{ width: '100%' }}>
+                <Grid container direction="row" style={{ paddingLeft: '2%', paddingBottom: '20px' }}>
+                  <ul className='listItem'>
+                    {reference?.actions && reference.actions.map((action, index) => (
+                      <li key={index} className="stepItem">
+                        <span className={classes.actionName}>{`Action ${index + 1} --- ${Object.keys(action)[0]}`}</span>
+                        <div className='stepActions'>
+                          <Tooltip title="Edit">
+                            <IconButton onClick={() => handleEditButtonClick(index)}>
+                              <EditIcon />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Delete">
+                            <IconButton onClick={() => removeItem('actions', index)}>
+                              <DeleteIcon />
+                            </IconButton>
+                          </Tooltip>
+                        </div>
+                      </li>
 
-                  ))}
-                </ul>
-                <Button
-                  variant="contained" color="primary" className="button"
-                  onClick={() => setActionPopupOpen(true)}
-                >
-                  Add Action
-                </Button>
-              </Grid>
+                    ))}
+                  </ul>
+                  <Button
+                    variant="contained" color="primary" className="button"
+                    onClick={() => setActionPopupOpen(true)}
+                  >
+                    Add Action
+                  </Button>
+                </Grid>
+              </Collapse>
               <ActionPopup
                 open={actionPopupOpen}
                 openParams={params}
@@ -659,150 +703,171 @@ const ReferencePopup = ({ referenceFileData, stepType, open, handleClose, onSubm
 
           {/* Input Variables Grid */}
           {stepType === "UI" && <>
-            <Grid className='reference-grid' container direction="row" style={{ paddingBottom: '5px', paddingTop: '20px' }}>
-              <HeaderDivider
-                title={
-                  <div style={{ display: 'flex' }}>
-                    <h3 className={classes.headerStyle}> Input Variables</h3>
-                  </div>
-                }
-              />
-              <Grid container direction="row" style={{ paddingLeft: '2%', paddingBottom: '20px' }}>
-                <Grid item xs={12}>
-                  {reference?.inputVariables && Object.keys(reference.inputVariables).length > 0 ? (
-                    <Button
-                      variant="contained"
-                      color="primary"
-                      onClick={() => handleOpenInputVariablePopup('inputVariable')}
-                    >
-                      Edit Input Variables
-                    </Button>
-                  ) : (
-                    <Button
-                      variant="contained"
-                      color="primary"
-                      onClick={handleOpenInputVariablePopup}
-                    >
-                      Add Input Variables
-                    </Button>
-                  )}
-                </Grid>
-                <InputVariablePopup
-                  stepType={stepType}
-                  open={inputVariablePopupOpen}
-                  handleClose={handleCloseInputVariablePopup}
-                  onSave={handleSaveInputVariable}
-                  initialData={isInputVariableEdit ? reference?.inputVariables : null}
-                  isEdit={isInputVariableEdit}
+            <Grid className='reference-grid' container direction="row" style={{ paddingBottom: '5px'}}>
+              <div style={{ display: 'flex', alignItems: 'center', width: '100%' }} onClick={() => toggleSection('inputVariablesInfo')}>
+                <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center' , marginTop:'0px'}}>
+                  <IconButton >
+                    {expandedSection.inputVariablesInfo ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                  </IconButton>
+                </div>
+                <HeaderDivider
+                  title={ 
+                    <h3 className={classes.headerStyle}>Input Variables</h3>               
+                  }
                 />
-              </Grid>
+              </div>
+              <Collapse in={expandedSection.inputVariablesInfo} timeout="auto" unmountOnExit style={{ width: '100%' }}>
+                <Grid container direction="row" style={{ paddingLeft: '2%', paddingBottom: '20px' }}>
+                  <Grid item xs={12}>
+                    {reference?.inputVariables && Object.keys(reference.inputVariables).length > 0 ? (
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={() => handleOpenInputVariablePopup('inputVariable')}
+                      >
+                        Edit Input Variables
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={handleOpenInputVariablePopup}
+                      >
+                        Add Input Variables
+                      </Button>
+                    )}
+                  </Grid>
+                  <InputVariablePopup
+                    stepType={stepType}
+                    open={inputVariablePopupOpen}
+                    handleClose={handleCloseInputVariablePopup}
+                    onSave={handleSaveInputVariable}
+                    initialData={isInputVariableEdit ? reference?.inputVariables : null}
+                    isEdit={isInputVariableEdit}
+                  />
+                </Grid>
+              </Collapse>
             </Grid>
           </>}
 
           {/* Assertions Grid */}
 
-          <Grid className='reference-grid' container direction="row" style={{ paddingBottom: '20px', paddingTop: '20px' }}>
-            <HeaderDivider
-              title={
-                <div style={{ display: 'flex' }}>
-                  <h3 className={classes.headerStyle}>Assertions</h3>
-                </div>
-              }
-            />
-            <Grid container direction="row" style={{ paddingLeft: '2%', paddingBottom: '20px' }}>
-              <ul className='listItem'>
-                {reference?.assertion && reference.assertion.map((assertion, index) => (
-                  <li key={index} className="stepItem">
-                    <span className="stepName">{`assertion ${index + 1} --- ${assertion.type}`}</span>
-                    <div className='stepReferences'>
-                      <Tooltip title="Edit">
-                        <IconButton
-                          onClick={() => handleAssertionEditButtonClick(index)}
-                        >
-                          <EditIcon />
-                        </IconButton>
-                      </Tooltip>
-                      <Tooltip title="Delete">
-                        <IconButton
-                          onClick={() => removeItem('assertion', index)}
-                        >
-                          <DeleteIcon />
-                        </IconButton>
-                      </Tooltip>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-              <Button
-                variant="contained" color="primary" className="add-step-button"
-                onClick={() => setAssertionPopupOpen(true)}
-              >
-                Add Assertion
-              </Button>
-              <AssertionBoxPopup
-                stepType={stepType}
-                open={assertionPopupOpen}
-                handleClose={handleCloseAssertionBox}
-                onSubmit={handleSaveAssertion}
-                initialData={isAssertionEdit ? reference.assertion[currentAssertionIndex] : null}
-                isEdit={isAssertionEdit}
+          <Grid className='reference-grid' container direction="row" >
+            <div style={{ display: 'flex', alignItems: 'center', width: '100%' }} onClick={() => toggleSection('assertionsInfo')}>
+              <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center' , marginTop:'0px'}}>
+                <IconButton >
+                  {expandedSection.assertionsInfo ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                </IconButton>
+              </div>
+              <HeaderDivider
+                title={ 
+                  <h3 className={classes.headerStyle}>Assertions</h3>               
+                }
               />
-            </Grid>
-          </Grid>
-
-          {/* Output Variables Grid */}
-
-          <Grid container style={{ marginBottom: '20px' }}>
-            <HeaderDivider
-              title={
-                <div style={{ display: 'flex' }}>
-                  <h3 className={classes.headerStyle}>Output Variables</h3>
-                </div>
-              }
-            />
-            <Grid container direction="row" style={{ paddingLeft: '2%', paddingBottom: '20px' }}>
-              <ul className="listItem">
-                {reference?.outputVariables && Array.isArray(reference?.outputVariables) &&
-                  reference?.outputVariables.map((outputVariable, index) => (
+            </div>
+            <Collapse in={expandedSection.assertionsInfo} timeout="auto" unmountOnExit style={{ width: '100%' }}>
+              <Grid container direction="row" style={{ paddingLeft: '2%', paddingBottom: '20px' }}>
+                <ul className='listItem'>
+                  {reference?.assertion && reference.assertion.map((assertion, index) => (
                     <li key={index} className="stepItem">
-                      <span className="stepName">
-                        {`outputVariable ${index + 1} --- ${Array.isArray(outputVariable.key)
-                          ? outputVariable.key.join(', ')
-                          : outputVariable.key
-                          }`}
-                      </span>
-                      <div className="stepReferences">
+                      <span className="stepName">{`assertion ${index + 1} --- ${assertion.type}`}</span>
+                      <div className='stepReferences'>
                         <Tooltip title="Edit">
-                          <IconButton onClick={() => handleOutputVariableEditButtonClick(index)}>
+                          <IconButton
+                            onClick={() => handleAssertionEditButtonClick(index)}
+                          >
                             <EditIcon />
                           </IconButton>
                         </Tooltip>
                         <Tooltip title="Delete">
-                          <IconButton onClick={() => removeItem('outputVariables', index)}>
+                          <IconButton
+                            onClick={() => removeItem('assertion', index)}
+                          >
                             <DeleteIcon />
                           </IconButton>
                         </Tooltip>
                       </div>
                     </li>
                   ))}
-              </ul>
-              <Button
-                variant="contained"
-                color="primary"
-                className="add-step-button"
-                onClick={() => setOutputVariablePopupOpen(true)}
-              >
-                Add Output Variable
-              </Button>
-              <OutputVariablePopup
-                stepType={stepType}
-                open={outputVariablePopupOpen}
-                handleClose={handleCloseOutputVariableBox}
-                onSubmit={handleSaveOutputVariable}
-                initialData={isOutputVariableEdit ? reference.outputVariables[currentOutputVariableIndex] : null}
-                isEdit={isOutputVariableEdit}
+                </ul>
+                <Button
+                  variant="contained" color="primary" className="add-step-button"
+                  onClick={() => setAssertionPopupOpen(true)}
+                >
+                  Add Assertion
+                </Button>
+                <AssertionBoxPopup
+                  stepType={stepType}
+                  open={assertionPopupOpen}
+                  handleClose={handleCloseAssertionBox}
+                  onSubmit={handleSaveAssertion}
+                  initialData={isAssertionEdit ? reference.assertion[currentAssertionIndex] : null}
+                  isEdit={isAssertionEdit}
+                />
+              </Grid>
+            </Collapse>
+          </Grid>
+
+          {/* Output Variables Grid */}
+
+          <Grid container style={{ marginBottom: '20px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', width: '100%' }} onClick={() => toggleSection('outputVariablesInfo')}>
+              <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center' , marginTop:'0px'}}>
+                <IconButton >
+                  {expandedSection.outputVariablesInfo ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                </IconButton>
+              </div>
+              <HeaderDivider
+                title={ 
+                  <h3 className={classes.headerStyle}>Output Variables</h3>               
+                }
               />
-            </Grid>
+            </div>
+            <Collapse in={expandedSection.outputVariablesInfo} timeout="auto" unmountOnExit style={{ width: '100%' }}>
+              <Grid container direction="row" style={{ paddingLeft: '2%', paddingBottom: '20px' }}>
+                <ul className="listItem">
+                  {reference?.outputVariables && Array.isArray(reference?.outputVariables) &&
+                    reference?.outputVariables.map((outputVariable, index) => (
+                      <li key={index} className="stepItem">
+                        <span className="stepName">
+                          {`outputVariable ${index + 1} --- ${Array.isArray(outputVariable.key)
+                            ? outputVariable.key.join(', ')
+                            : outputVariable.key
+                            }`}
+                        </span>
+                        <div className="stepReferences">
+                          <Tooltip title="Edit">
+                            <IconButton onClick={() => handleOutputVariableEditButtonClick(index)}>
+                              <EditIcon />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Delete">
+                            <IconButton onClick={() => removeItem('outputVariables', index)}>
+                              <DeleteIcon />
+                            </IconButton>
+                          </Tooltip>
+                        </div>
+                      </li>
+                    ))}
+                </ul>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  className="add-step-button"
+                  onClick={() => setOutputVariablePopupOpen(true)}
+                >
+                  Add Output Variable
+                </Button>
+                <OutputVariablePopup
+                  stepType={stepType}
+                  open={outputVariablePopupOpen}
+                  handleClose={handleCloseOutputVariableBox}
+                  onSubmit={handleSaveOutputVariable}
+                  initialData={isOutputVariableEdit ? reference.outputVariables[currentOutputVariableIndex] : null}
+                  isEdit={isOutputVariableEdit}
+                />
+              </Grid>
+            </Collapse>
           </Grid>
 
           <Grid item xs={12}>

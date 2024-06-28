@@ -4,10 +4,13 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { STEP_TYPE_OPTIONS } from '../constants/constants';
 import HeaderDivider from '../components/headerWithDivider';
-import { makeStyles } from '@material-ui/core';
+import { Collapse, makeStyles } from '@material-ui/core';
 import { useNavigate } from 'react-router-dom';
 import CloseIcon from '@mui/icons-material/Close';
 import ReferencePopup from './ReferencePopup';
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import ExpandLessIcon from "@mui/icons-material/ExpandLess";
+
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -28,7 +31,8 @@ const useStyles = makeStyles((theme) => ({
   headerStyle: {
     marginTop: '0px',
     fontSize: '18px',
-    fontWeight: '600'
+    fontWeight: '600',
+    cursor: "pointer"
   },
   stickToTop: {
     padding: '1% 2% 1% 2%',
@@ -109,6 +113,19 @@ const StepBoxPopup = ({ open, handleClose, onSubmit, initialData, isEdit, allFil
     references: []
   });
 
+  const [expandedSection, setExpandedSection] = useState({
+    generalInfo: true,
+    referencesSection: true,
+    // Add other sections here as needed
+  });
+
+  const toggleSection = (section) => {
+    setExpandedSection(prevState => ({
+      ...prevState,
+      [section]: !prevState[section],
+    }));
+  };
+
   useEffect(() => {
     if (isEdit && normalizedInitialData) {
       setStep(normalizedInitialData);
@@ -185,6 +202,8 @@ const StepBoxPopup = ({ open, handleClose, onSubmit, initialData, isEdit, allFil
   const [fileContentJSON, setFileContentJSON] = useState()
   const handleEditReference = (index) => {
 
+    console.log(index);
+
     const reference = step.references[index];
     if (Object.keys(reference)[0] === 'jsonRef') {
       const jsonRef = step.references[index]['jsonRef']; // Path from normalizedInitialData      
@@ -225,158 +244,177 @@ const StepBoxPopup = ({ open, handleClose, onSubmit, initialData, isEdit, allFil
             <CloseIcon />
           </IconButton>
         </Grid>
-        <HeaderDivider
-          title={
-            <div style={{ display: 'flex' }}>
-              <h3 className={classes.headerStyle}>General Information</h3>
+        <Grid container style={{ marginBottom: '2%' }}>
+          <div style={{ display: 'flex', alignItems: 'center', width: '100%' }} onClick={() => toggleSection('generalInfo')}>
+            <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center' , marginTop:'0px'}}>
+              <IconButton >
+                {expandedSection.generalInfo ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+              </IconButton>
             </div>
-          }
-        />
+            <HeaderDivider
+              title={ 
+                <h3 className={classes.headerStyle}>General Information</h3>               
+              }
+            />
+          </div>
+        </Grid>
+        
         <form onSubmit={handleSubmit}>
-          <Grid container direction="row" spacing={2} style={{ paddingLeft: '2%', paddingBottom: '20px' }}>
-            <Grid item xs={12} md={4}>
-              <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
-                Step Name
-                <span style={{ color: 'red' }}>*</span>
-              </div>
-              <TextField
-                placeholder='Enter step name'
-                name="stepName"
-                type="text"
-                value={step.stepName}
-                onChange={handleChange}
-                fullWidth
-              />
+          <Collapse in={expandedSection.generalInfo} timeout="auto" unmountOnExit style={{ width: '100%' }}>
+            <Grid container direction="row" spacing={2} style={{ paddingLeft: '2%', paddingBottom: '20px' }}>
+              <Grid item xs={12} md={4}>
+                <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
+                  Step Name
+                  <span style={{ color: 'red' }}>*</span>
+                </div>
+                <TextField
+                  placeholder='Enter step name'
+                  name="stepName"
+                  type="text"
+                  value={step.stepName}
+                  onChange={handleChange}
+                  fullWidth
+                />
+              </Grid>
+              <Grid item xs={6} md={4} ls={4} xl={4}>
+                <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
+                  Step Type
+                  <span style={{ color: 'red' }}>*</span>
+                </div>
+                <TextField
+                  select
+                  name="stepType"
+                  label='Select Type'
+                  placeholder='Select Step Type'
+                  style={{ width: '300px' }}
+                  value={step.stepType}
+                  onChange={handleChange}
+                >
+                  {STEP_TYPE_OPTIONS.map((option) => (
+                    <MenuItem key={option} value={option}> {option} </MenuItem>
+                  ))}
+                </TextField>
+              </Grid>
+              <Grid item xs={6} md={4} ls={4} xl={4}>
+                <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
+                  Label
+                </div>
+                <TextField
+                  select
+                  name="useLabel"
+                  label='Select Label'
+                  style={{ width: '300px' }}
+                  value={step.useLabel}
+                  onChange={handleChange}
+                >
+                  <MenuItem key='carrierGo' value='carrierGo'> CarrierGo </MenuItem>
+                  <MenuItem key='logistics' value='logistics'> Logistics </MenuItem>
+                </TextField>
+              </Grid>
+              <Grid item xs={6} md={4} ls={4} xl={4}>
+                <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
+                  LHS
+                </div>
+                <TextField
+                  placeholder='check conditions'
+                  name="lhs"
+                  type="text"
+                  value={step.checkCondition?.lhs}
+                  onChange={handleCheckConditionChange}
+                  fullWidth
+                />
+              </Grid>
+              <Grid item xs={6} md={4} ls={4} xl={4}>
+                <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
+                  Operator
+                </div>
+                <TextField
+                  select
+                  name="operator"
+                  label='check conditions'
+                  style={{ width: '300px' }}
+                  value={step.checkCondition?.operator}
+                  onChange={handleCheckConditionChange}
+                >
+                  <MenuItem key='equals' value='equals'> Equals </MenuItem>
+                  <MenuItem key='notEquals' value='notEquals'> Not Equals </MenuItem>
+                </TextField>
+              </Grid>
+              <Grid item xs={6} md={4} ls={4} xl={4}>
+                <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
+                  RHS
+                </div>
+                <TextField
+                  placeholder='check condition'
+                  name="rhs"
+                  type="text"
+                  value={step.checkCondition?.rhs}
+                  onChange={handleCheckConditionChange}
+                  fullWidth
+                />
+              </Grid>
             </Grid>
-            <Grid item xs={6} md={4} ls={4} xl={4}>
-              <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
-                Step Type
-                <span style={{ color: 'red' }}>*</span>
-              </div>
-              <TextField
-                select
-                name="stepType"
-                label='Select Type'
-                placeholder='Select Step Type'
-                style={{ width: '300px' }}
-                value={step.stepType}
-                onChange={handleChange}
-              >
-                {STEP_TYPE_OPTIONS.map((option) => (
-                  <MenuItem key={option} value={option}> {option} </MenuItem>
-                ))}
-              </TextField>
-            </Grid>
-            <Grid item xs={6} md={4} ls={4} xl={4}>
-              <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
-                Label
-              </div>
-              <TextField
-                select
-                name="useLabel"
-                label='Select Label'
-                style={{ width: '300px' }}
-                value={step.useLabel}
-                onChange={handleChange}
-              >
-                <MenuItem key='carrierGo' value='carrierGo'> CarrierGo </MenuItem>
-                <MenuItem key='logistics' value='logistics'> Logistics </MenuItem>
-              </TextField>
-            </Grid>
-            <Grid item xs={6} md={4} ls={4} xl={4}>
-              <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
-                LHS
-              </div>
-              <TextField
-                placeholder='check conditions'
-                name="lhs"
-                type="text"
-                value={step.checkCondition?.lhs}
-                onChange={handleCheckConditionChange}
-                fullWidth
-              />
-            </Grid>
-            <Grid item xs={6} md={4} ls={4} xl={4}>
-              <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
-                Operator
-              </div>
-              <TextField
-                select
-                name="operator"
-                label='check conditions'
-                style={{ width: '300px' }}
-                value={step.checkCondition?.operator}
-                onChange={handleCheckConditionChange}
-              >
-                <MenuItem key='equals' value='equals'> Equals </MenuItem>
-                <MenuItem key='notEquals' value='notEquals'> Not Equals </MenuItem>
-              </TextField>
-            </Grid>
-            <Grid item xs={6} md={4} ls={4} xl={4}>
-              <div style={{ paddingBottom: '5px', paddingTop: '10px' }}>
-                RHS
-              </div>
-              <TextField
-                placeholder='check condition'
-                name="rhs"
-                type="text"
-                value={step.checkCondition?.rhs}
-                onChange={handleCheckConditionChange}
-                fullWidth
-              />
-            </Grid>
-          </Grid>
+          </Collapse>
 
           {/* References Grid */}
 
           <Grid className='actions-grid' container direction="row" style={{ paddingBottom: '20px', paddingTop: '20px' }}>
-            <HeaderDivider
-              title={
-                <div style={{ display: 'flex' }}>
-                  <h3 className={classes.headerStyle}>References</h3>
-                </div>
-              }
-            />
-            <Grid container style={{ paddingLeft: '2%', paddingBottom: '20px' }} >
-              <ul className='listItem'>
-                {step.references.map((reference, index) => (
-                  <li key={index} className="stepItem">
-                    <span className="stepName">
-                      {`${Object.keys(reference)[0]} - ${Object.values(reference)[0]}` || `Reference ${index + 1}`}
-                    </span>
-                    <div className="stepReference">
-                      <Tooltip title="Edit">
-                        <IconButton onClick={() => handleEditReference(index)}>
-                          <EditIcon />
-                        </IconButton>
-                      </Tooltip>
-                      <Tooltip title="Delete">
-                        <IconButton onClick={() => removeReference(index)}>
-                          <DeleteIcon />
-                        </IconButton>
-                      </Tooltip>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-              <Button
-                variant="contained" color="primary" className="add-step-button"
-                onClick={() => setReferencePopupOpen(true)}
-              >
-                Add Reference
-              </Button>
-              <ReferencePopup
-                referenceFileData= {fileContentJSON}
-                stepType={step.stepType}
-                open={referencePopupOpen}
-                handleClose={handleCloseReferencePopup}
-                onSubmit={handleSaveReference}
-                initialData={isReferenceEdit ? step.references[currentReferenceIndex] : null}
-                isEdit={isReferenceEdit}
-                allFiles={allFiles}
+            <div style={{ display: 'flex', alignItems: 'center', width: '100%' }} onClick={() => toggleSection('referencesSection')}>
+              <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center' , marginTop:'0px'}}>
+                <IconButton >
+                  {expandedSection.referencesSection ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                </IconButton>
+              </div>
+              <HeaderDivider
+                title={ 
+                  <h3 className={classes.headerStyle}>References</h3>               
+                }
               />
-            </Grid>
+            </div>
+            
+            <Collapse in={expandedSection.referencesSection} timeout="auto" unmountOnExit style={{ width: '100%' }}>
+              <Grid container style={{ paddingLeft: '2%', paddingBottom: '20px' }} >
+                <ul className='listItem'>
+                  {step.references.map((reference, index) => (
+                    <li key={index} className="stepItem">
+                      <span className="stepName">
+                        {`${Object.keys(reference)[0]} - ${Object.values(reference)[0]}` || `Reference ${index + 1}`}
+                      </span>
+                      <div className="stepReference">
+                        <Tooltip title="Edit">
+                          <IconButton onClick={() => handleEditReference(index)}>
+                            <EditIcon />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Delete">
+                          <IconButton onClick={() => removeReference(index)}>
+                            <DeleteIcon />
+                          </IconButton>
+                        </Tooltip>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+                <Button
+                  variant="contained" color="primary" className="add-step-button"
+                  onClick={() => setReferencePopupOpen(true)}
+                >
+                  Add Reference
+                </Button>
+                <ReferencePopup
+                  referenceFileData= {fileContentJSON}
+                  stepType={step.stepType}
+                  open={referencePopupOpen}
+                  handleClose={handleCloseReferencePopup}
+                  onSubmit={handleSaveReference}
+                  initialData={isReferenceEdit ? step.references[currentReferenceIndex] : null}
+                  isEdit={isReferenceEdit}
+                  allFiles={allFiles}
+                />
+              </Grid>
+            </Collapse>
           </Grid>
+
           <Grid item xs={12}>
             <Button type="submit" onClick={handleSubmit} variant="contained" color="primary">
               {isEdit ? "Update Step" : "Save Step"}

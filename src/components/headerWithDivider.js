@@ -8,7 +8,7 @@ const headerWithDivider = props => {
 				direction="row"
 				alignItems="center"
 				justifyContent="center"
-				style={{ width: '100%', height: '8%', display: 'flex' }}
+				style={{ width: '100%', height: '8%', display: 'flex', paddingBottom: '23px' }}
 			>
 				<Grid style={{ color: '#3a546b', marginRight: '12px', display: 'flex' }}>{props.title}</Grid>
 				<Grid

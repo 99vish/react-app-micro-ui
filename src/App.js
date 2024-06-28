@@ -5,7 +5,7 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import AddRef from './pages/AddRef.js';
 import LandingPage from './LandingPage.js';
 
-const fs = require('fs');
+// const fs = require('fs');
 
 // import FileTree from './FileTree.js';
 // import './newStyles.css';
